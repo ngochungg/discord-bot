@@ -1,0 +1,23 @@
+import os
+from dotenv import load_dotenv
+import discord
+from modules.on_message import handle_message
+
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
+
+intents = discord.Intents.default()
+intents.message_content = True
+intents.messages = True
+
+client = discord.Client(intents=intents)
+
+@client.event
+async def on_ready():
+    print(f'✅ Logged in as {client.user}')
+
+@client.event
+async def on_message(message):
+    await handle_message(message, client)
+
+client.run(TOKEN)
