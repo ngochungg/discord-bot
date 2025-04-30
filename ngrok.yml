@@ -1,0 +1,7 @@
+version: "3"
+agent:
+    authtoken: 2wQQprI23HpEElvIdAkjv3hOZhP_7fhimSnWdgBN2SgRSGSj4
+tunnels:
+  api:
+    addr: 11434
+    proto: http

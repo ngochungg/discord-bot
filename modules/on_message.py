@@ -1,7 +1,19 @@
-import requests
+import os
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "herta"
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+#OLLAMA_URL = os.getenv('OLLAMA_URL')
+
+ngrok_url = os.getenv('NGROK_URL')
+#  Debugged
+if ngrok_url:
+    print(f"🌍 Bot will connect to: {ngrok_url}")
+else:
+    print("⚠️ Ngrok URL is not available!")
+
+MODEL_NAME = "the-herta"
 TRIGGER_NAME = ["herta", "hey Herta", "hey herta",
                 "Herta?", "herta?", "yo herta",
                 "yo Herta"]
@@ -10,7 +22,7 @@ def ask_ollama(prompt):
     #print(f"Sending to Ollama: {prompt}")  # 👀 debug
 
     try:
-        response = requests.post(OLLAMA_URL, json={
+        response = requests.post(f"{ngrok_url}/api/generate", json={
             "model": MODEL_NAME,
             "prompt": prompt,
             #"system": "You are a helpful and talkative assistant. Always reply clearly and helpfully.",
