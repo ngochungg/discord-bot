@@ -1,7 +1,9 @@
 import os
-from dotenv import load_dotenv
 import discord
+
+from dotenv import load_dotenv
 from modules.on_message import handle_message
+from modules.sys_cmd import on_sys_cmd
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -19,5 +21,6 @@ async def on_ready():
 @client.event
 async def on_message(message):
     await handle_message(message, client)
+    await on_sys_cmd(message)
 
 client.run(TOKEN)
