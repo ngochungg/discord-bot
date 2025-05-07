@@ -71,7 +71,7 @@ async def update(ctx):
     await ctx.send(f"✅ Pull result:\n```{result_pull}```")
     await ctx.send(f"🐳 Docker result:\n```{result_docker}```")
 
-async def pull_latest_code(repo_path="/homelab/bot"):
+async def pull_latest_code(repo_path="/homelab/bots/discord-bot"):
     try:
         # Go to direction and pull
         result = subprocess.check_output(
@@ -82,7 +82,7 @@ async def pull_latest_code(repo_path="/homelab/bot"):
     except subprocess.CalledProcessError as e:
         await f"Error pulling code:\n{e.output}"
 
-async def rebuild_and_restart_docker(repo_path="homelab/bot"):
+async def rebuild_and_restart_docker(repo_path="/homelab/bots/discord-bot"):
     try:
         cmds = [
             f"cd {repo_path}",
