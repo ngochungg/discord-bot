@@ -65,14 +65,33 @@ async def shutdown(ctx):
 
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
-    if ctx.author.id not in ALLOWED_USER_IDS:
-        await ctx.channel.send(f"⛔️You are not allowed to use this command.")
+    await ctx.send("Pulling latest code & rebuilding Docker...")
+    result_pull = pull_latest_code()
+    result_docker = rebuild_and_restart_docker()
+    await ctx.send(f"✅ Pull result:\n```{result_pull}```")
+    await ctx.send(f"🐳 Docker result:\n```{result_docker}```")
 
-    await ctx.channel.send("🔃 Pull code from Git and restart bot...")
-    result = subprocess.run(['git', 'pull'], cwd=os.path.dirname(__file__), capture_output=True, text=True)
-    await ctx.channel.send(f"```bash\n{result.stdout}\n{result.stderr}\n```")
-    # If it has any change, reboot script bot
-    if "Already up to date" not in result.stdout:
-        await ctx.channel.send("Updated, reboot bot...")
-        python = sys.executable
-        os.execv(python, [python] + sys.argv)
+async def pull_latest_code(repo_path="/homelab/bot"):
+    try:
+        # Go to direction and pull
+        result = subprocess.check_output(
+            f"cd {repo_path} && git pull",
+            shell=True, text=True
+        )
+        await result
+    except subprocess.CalledProcessError as e:
+        await f"Error pulling code:\n{e.output}"
+
+async def rebuild_and_restart_docker(repo_path="homelab/bot"):
+    try:
+        cmds = [
+            f"cd {repo_path}",
+            "docker stop the-herta || true",
+            "docker rm herta || true",
+            "docker build -t herta-bot .",
+            "docker run -d --name herta --restart always --env-file .env discord-bot"
+        ]
+        result = subprocess.check_output(" && ".join(cmds), shell=True, text=True)
+        return result
+    except subprocess.CalledProcessError as e:
+        return f"Error rebuilding:\n{e.output}"
