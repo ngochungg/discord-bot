@@ -3,6 +3,7 @@ version: "3.9"
 services:
   docker-inside:
     build: .
+    container_name: the-herta
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro  # Mount Docker socket
       - /usr/local/bin/docker:/usr/local/bin/docker:ro  # Mount Docker CLI binary
