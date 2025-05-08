@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  docker-inside:
+    build: .
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Mount Docker socket
+      - /usr/local/bin/docker:/usr/local/bin/docker:ro  # Mount Docker CLI binary
+    tty: true
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock  # Đảm bảo môi trường Docker đang sử dụng socket đúng
+    restart: always

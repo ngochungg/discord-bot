@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 # Cài gói cần thiết cho runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    procps curl ca-certificates unzip jq && \
+    procps curl ca-certificates unzip jq docker.io && \
     rm -rf /var/lib/apt/lists/*
 
 # Tạo thư mục làm việc

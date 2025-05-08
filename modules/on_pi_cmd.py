@@ -9,6 +9,7 @@ import psutil
 
 from discord.ext import commands
 from dotenv import load_dotenv
+from huggingface_hub.utils import capture_output
 
 ALLOWED_USER_IDS = [377676460334514176]
 
@@ -39,12 +40,14 @@ async def docker_ps(ctx):
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
 
     try:
-        output = subprocess.check_output(['docker ps'], shell=True, text=True)
-        msg = output.strip()
+        output = subprocess.run(['docker', 'ps'], capture_output=True, text=True, check=True)
+        msg = output.stdout
+        print(output)
+        print(msg)
         if not msg:
             msg = "(No container is running.)"
         await ctx.channel.send(f"```bash\n{msg}\n```")
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         await ctx.channel.send(f"Error while run docker ps: {e}")
 
 # --- !reboot: Reboot Pi (only bot owner) ---
