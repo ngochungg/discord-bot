@@ -1,21 +1,30 @@
 FROM python:3.11-slim
 
-# Cài git và các gói cần thiết
-RUN apt-get update && apt-get install -y git docker.io docker-compose && apt-get clean
+# Cập nhật kho và cài đặt các gói cần thiết
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    git \
+    docker.io && \
+    apt-get clean
+
+# Thêm Docker Compose
+RUN curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
+    chmod +x /usr/local/bin/docker-compose
 
 # Tạo thư mục làm việc
 WORKDIR /app/update-manager
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy source code
-COPY update_bot.sh .
-RUN chmod +x update_bot.sh
-
+# Copy phần còn lại của source code vào container
 COPY . .
 
-# Mở cổng Flask
-EXPOSE 8000
+EXPOSE 20000
 
+# Cài đặt các thư viện Python yêu cầu (nếu có)
+RUN pip install -r requirements.txt
+
+# Thiết lập entrypoint (nếu cần, ví dụ chạy script main.py)
 CMD ["python", "main.py"]

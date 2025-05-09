@@ -2,6 +2,7 @@ services:
   bot:
     build: .
     image: discord-bot:latest
+    container_name: the-herta
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # để chạy docker từ trong container
       - /usr/local/bin/docker:/usr/local/bin/docker
@@ -15,10 +16,14 @@ services:
   update-manager:
     build:
       context: ./update-manager  # Chỉ định context là thư mục chứa Dockerfile
-    ports:
-      - "8000:8000"
+    container_name: update-manager
     volumes:
-      - ./update-manager:/app/update-manager
+      - .:/app/  # Mount thư mục update-manager vào container
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/local/bin/docker:/usr/local/bin/docker
+    working_dir: /app/update-manager
+    ports:
+      - "20000:20000"
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
     restart: always

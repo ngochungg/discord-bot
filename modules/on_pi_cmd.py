@@ -24,7 +24,7 @@ project_dir = __File__.parent
 async def status(ctx):
     if ctx.author.id not in ALLOWED_USER_IDS:
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
-
+    await ctx.channel.send(f"📦 Checking computer...")
     cpu = psutil.cpu_percent(interval=1)
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
@@ -70,21 +70,40 @@ async def shutdown(ctx):
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
     await ctx.channel.send("📦 Pulling latest code & rebuilding bot...")
-    # run the script, capture both streams
-    proc = subprocess.run(
-        ["bash", "./update_bot.sh"],
-        cwd="/app/update-manager",       # ensure correct working dir
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
 
-    # choose which to show: prefer stderr if non-zero
-    if proc.returncode != 0:
-        out = proc.stderr or proc.stdout or "Unknown error"
-        # truncate to 1900 chars so the message (with backticks) stays < 4000
-        snippet = out[:1900] + ("… (truncated)" if len(out) > 1900 else "")
-        print(out)
-        await ctx.channel.send(f"❌ Update failed (exit {proc.returncode}):\n```bash\n{snippet}\n```")
-    else:
-        await ctx.channel.send("✅ Update completed successfully.")
+    try:
+        response = requests.post("http://120.0.0.1:20000/update")
+
+        if response.status_code == 200:
+            await ctx.channel.send(f"✅ Update completed:\n```bash\n\n```")
+        else:
+            await ctx.channel.send(f"❌ Error: {response.text}")
+
+    except subprocess.CalledProcessError as e:
+        error_output = e.stderr or e.stdout or "Unknown error"
+        snippet = error_output[:1900] + ("… (truncated)" if len(error_output) > 1900 else "")
+        await ctx.channel.send(
+            f"❌ Update failed (exit code {e.returncode}):\n```bash\n{snippet}\n```"
+        )
+
+async def test_update(ctx):
+    await ctx.channel.send("📦 Pulling latest code & rebuilding bot...")
+
+    try:
+        proc = subprocess.run(
+            ["docker", "exec", "update-manager", "bash", "/app/update-manager/update_bot.sh"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        output = proc.stdout.strip() or "✅ Update completed successfully."
+        snippet = output[:1900] + ("… (truncated)" if len(output) > 1900 else "")
+        await ctx.channel.send(f"✅ Update completed:\n```bash\n{snippet}\n```")
+
+    except subprocess.CalledProcessError as e:
+        error_output = e.stderr or e.stdout or "Unknown error"
+        snippet = error_output[:1900] + ("… (truncated)" if len(error_output) > 1900 else "")
+        await ctx.channel.send(
+            f"❌ Update failed (exit code {e.returncode}):\n```bash\n{snippet}\n```"
+        )
