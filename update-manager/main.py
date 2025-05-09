@@ -10,7 +10,7 @@ def update():
         # return "Update triggered successfully", 200
         return jsonify({
             "success": True,
-            "output": result or "✅ Update bot completed."
+            "output": result.stdout or "✅ Update bot completed."
         }), 200
     except subprocess.CalledProcessError as e:
         return jsonify({
