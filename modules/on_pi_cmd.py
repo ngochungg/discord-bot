@@ -32,7 +32,7 @@ async def status(ctx):
         f"\n```bash\n**💻CPU:** {cpu}%\n"
         f"**🧠RAM:** {mem.percent}% (usable {mem.available // (1024*1024)} MB)\n"
         f"**💾Disk:** {disk.percent}% ({disk.used // (1024*1024*1024)}GB/{disk.total // (1024*1024*1024)}GB)\n"
-        f"**⏱️Uptime:** {str(uptime).split('.')[0]}\n"
+        f"**⏱️Uptime:** {str(uptime).split('.')[0]}\n```"
     )
     await ctx.channel.send(f"{text}")
 
