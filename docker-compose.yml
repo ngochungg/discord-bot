@@ -1,13 +1,24 @@
-version: "3.9"
-
 services:
-  docker-inside:
+  bot:
     build: .
-    container_name: the-herta
+    image: discord-bot:latest
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro  # Mount Docker socket
-      - /usr/local/bin/docker:/usr/local/bin/docker:ro  # Mount Docker CLI binary
+      - /var/run/docker.sock:/var/run/docker.sock  # để chạy docker từ trong container
+      - /usr/local/bin/docker:/usr/local/bin/docker
+      - .:/app  # mount chính project vào container
+    working_dir: /app
     tty: true
     environment:
-      DOCKER_HOST: unix:///var/run/docker.sock  # Đảm bảo môi trường Docker đang sử dụng socket đúng
+      DOCKER_HOST: unix:///var/run/docker.sock
+    restart: always
+
+  update-manager:
+    build:
+      context: ./update-manager  # Chỉ định context là thư mục chứa Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./update-manager:/app/update-manager
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/local/bin/docker
     restart: always

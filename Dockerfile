@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 # Cài gói cần thiết cho runtime
 RUN apt-get update --allow-releaseinfo-change && apt-get install -y --fix-missing  --no-install-recommends \
-    curl ca-certificates unzip jq docker.io git build-essential  \
+    curl ca-certificates unzip jq docker.io docker-compose git build-essential  \
     libpq-dev && \
     rm -rf /var/lib/apt/lists/*
 

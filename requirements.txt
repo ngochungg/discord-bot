@@ -8,5 +8,5 @@ filelock>=3.18.0
 discord>=2.3.2
 python-dotenv>=1.1.0
 psutil>=7.0.0
-huggingface-hub>=0.30.2
 requests>=2.32.3
+Flask>=3.1.0

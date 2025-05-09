@@ -1,21 +1,24 @@
 # modules/on_pi_cmd.py
+import asyncio
 import datetime
-import logging
 import os
 import subprocess
-import sys
-import discord
-import psutil
+from pathlib import Path
 
-from discord.ext import commands
+import psutil
+import requests
+
 from dotenv import load_dotenv
-from huggingface_hub.utils import capture_output
 
 ALLOWED_USER_IDS = [377676460334514176]
 
 # --- Setup bot ---
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
+# --- File path ---
+__File__ = Path(__file__).parent.resolve()
+project_dir = __File__.parent
 
 # --- !status: Show CPU, RAM, Disk and time uptime ---
 async def status(ctx):
@@ -42,8 +45,6 @@ async def docker_ps(ctx):
     try:
         output = subprocess.run(['docker', 'ps'], capture_output=True, text=True, check=True)
         msg = output.stdout
-        print(output)
-        print(msg)
         if not msg:
             msg = "(No container is running.)"
         await ctx.channel.send(f"```bash\n{msg}\n```")
@@ -68,33 +69,22 @@ async def shutdown(ctx):
 
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
-    await ctx.send("Pulling latest code & rebuilding Docker...")
-    result_pull = pull_latest_code()
-    result_docker = rebuild_and_restart_docker()
-    await ctx.send(f"✅ Pull result:\n```{result_pull}```")
-    await ctx.send(f"🐳 Docker result:\n```{result_docker}```")
+    await ctx.channel.send("📦 Pulling latest code & rebuilding bot...")
+    # run the script, capture both streams
+    proc = subprocess.run(
+        ["bash", "./update_bot.sh"],
+        cwd="/app/update-manager",       # ensure correct working dir
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
 
-async def pull_latest_code(repo_path="/homelab/bots/discord-bot"):
-    try:
-        # Go to direction and pull
-        result = subprocess.check_output(
-            f"cd {repo_path} && git pull",
-            shell=True, text=True
-        )
-        await result
-    except subprocess.CalledProcessError as e:
-        await f"Error pulling code:\n{e.output}"
-
-async def rebuild_and_restart_docker(repo_path="/homelab/bots/discord-bot"):
-    try:
-        cmds = [
-            f"cd {repo_path}",
-            "docker stop the-herta || true",
-            "docker rm herta || true",
-            "docker build -t herta-bot .",
-            "docker run -d --name herta --restart always --env-file .env discord-bot"
-        ]
-        result = subprocess.check_output(" && ".join(cmds), shell=True, text=True)
-        return result
-    except subprocess.CalledProcessError as e:
-        return f"Error rebuilding:\n{e.output}"
+    # choose which to show: prefer stderr if non-zero
+    if proc.returncode != 0:
+        out = proc.stderr or proc.stdout or "Unknown error"
+        # truncate to 1900 chars so the message (with backticks) stays < 4000
+        snippet = out[:1900] + ("… (truncated)" if len(out) > 1900 else "")
+        print(out)
+        await ctx.channel.send(f"❌ Update failed (exit {proc.returncode}):\n```bash\n{snippet}\n```")
+    else:
+        await ctx.channel.send("✅ Update completed successfully.")
