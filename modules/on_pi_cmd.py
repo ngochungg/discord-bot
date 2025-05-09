@@ -1,5 +1,4 @@
 # modules/on_pi_cmd.py
-import asyncio
 import datetime
 import os
 import subprocess
