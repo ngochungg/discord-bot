@@ -1,8 +1,6 @@
 import os
 
-import discord
 import requests
-from discord.ext import commands
 
 from dotenv import load_dotenv
 
@@ -49,7 +47,7 @@ def ask_bot(prompt, usr_id):
         response = requests.post(url, headers=headers, json=data)
         data = response.json()["choices"][0]["message"]["content"]
         return data or "❌ No response from Herta."
-    except Exception as e:
+    except requests.exceptions.RequestException:
         return "⚠️ Failed to connect to Herta API."
 
 

@@ -1,4 +1,4 @@
-from modules.on_pi_cmd import status, docker_ps, update
+from modules.pi_cmd import status, docker_ps, update
 
 async def on_sys_cmd(message):
     if message.content.startswith("!status"):

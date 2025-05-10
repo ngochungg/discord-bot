@@ -1,4 +1,4 @@
-# modules/on_pi_cmd.py
+# modules/pi_cmd.py
 import datetime
 import os
 import subprocess
