@@ -46,9 +46,9 @@ async def docker_ps(ctx):
         msg = output.stdout
         if not msg:
             msg = "(No container is running.)"
-        await ctx.channel.send(f"```bash\n{msg}\n```")
+        await send_long_message(ctx.channel, msg)
     except subprocess.CalledProcessError as e:
-        await ctx.channel.send(f"Error while run docker ps: {e}")
+        await send_long_message(ctx.channel, "Error occurred while checking container.")
 
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
@@ -73,3 +73,9 @@ async def update(ctx):
         await ctx.channel.send(
             f"❌ Update failed (exit code {e.returncode}):\n```bash\n{snippet}\n```"
         )
+
+async def send_long_message(channel, content, prefix="```bash\n", suffix="```"):
+    max_len = 2000 - len(prefix) - len(suffix)
+    for i in range(0, len(content), max_len):
+        part = content[i:i + max_len]
+        await channel.send(f"{prefix}{part}{suffix}")
