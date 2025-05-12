@@ -42,13 +42,13 @@ async def docker_ps(ctx):
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
     await ctx.channel.send(f"🐳 Checking container...")
     try:
-        output = subprocess.run(['docker', 'ps'], capture_output=True, text=True, check=True)
+        output = subprocess.run('docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Size}}"', capture_output=True, text=True, check=True, shell=True)
         msg = output.stdout
         if not msg:
             msg = "(No container is running.)"
         await send_long_message(ctx.channel, msg)
     except subprocess.CalledProcessError as e:
-        await send_long_message(ctx.channel, "Error occurred while checking container.")
+        await send_long_message(ctx.channel, "Error occurred while checking container" + e.stdout)
 
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
