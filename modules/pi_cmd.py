@@ -8,6 +8,7 @@ import psutil
 import requests
 
 from dotenv import load_dotenv
+from utils.long_message import send_long_message
 
 ALLOWED_USER_IDS = [377676460334514176]
 
@@ -73,9 +74,3 @@ async def update(ctx):
         await ctx.channel.send(
             f"❌ Update failed (exit code {e.returncode}):\n```bash\n{snippet}\n```"
         )
-
-async def send_long_message(channel, content, prefix="```bash\n", suffix="```"):
-    max_len = 2000 - len(prefix) - len(suffix)
-    for i in range(0, len(content), max_len):
-        part = content[i:i + max_len]
-        await channel.send(f"{prefix}{part}{suffix}")
