@@ -19,7 +19,7 @@ async def on_sys_cmd(message):
     elif message.content.startswith("!fix_grammar"):
         await fix_grammar(message)
     elif message.content.startswith("!help"):
-        help_text = """
+        help_text = """```
 **List commands:**
 
 !status - System status
@@ -29,5 +29,5 @@ async def on_sys_cmd(message):
 !translate <text> - Translate vi <-> en
 !fix_grammar <text> - Fix English grammar 
 !help - Show this help
-"""
+```"""
         await message.channel.send(help_text)
