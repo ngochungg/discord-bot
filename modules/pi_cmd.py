@@ -8,7 +8,7 @@ import psutil
 import requests
 
 from dotenv import load_dotenv
-from utils.long_message import send_long_message
+from utils.long_message import send_long_sys_message
 
 ALLOWED_USER_IDS = [377676460334514176]
 
@@ -47,9 +47,9 @@ async def docker_ps(ctx):
         msg = output.stdout
         if not msg:
             msg = "(No container is running.)"
-        await send_long_message(ctx.channel, msg)
+        await send_long_sys_message(ctx.channel, msg)
     except subprocess.CalledProcessError as e:
-        await send_long_message(ctx.channel, "Error occurred while checking container" + e.stdout)
+        await send_long_sys_message(ctx.channel, "Error occurred while checking container" + e.stdout)
 
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
