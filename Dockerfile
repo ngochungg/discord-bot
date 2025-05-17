@@ -15,6 +15,7 @@ COPY requirements.txt .
 # Cài thư viện Python
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install yt-dlp
 
 # Copy phần còn lại của source code
 COPY . .
