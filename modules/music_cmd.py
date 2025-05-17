@@ -20,6 +20,8 @@ ffmpeg_options = {
     'options': '-vn'
 }
 
+music_queues = {}  # guild_id -> list of YTDLSource
+
 # --- Config playing music from url or name ---
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -43,7 +45,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
 # --- !play: playing music from url/text ---
 async def play (ctx, *, message_text: str, loop=None):
-
     # Check input query
     query = ctx.content[len('!play'):].strip()
     if not query:
@@ -75,22 +76,59 @@ async def play (ctx, *, message_text: str, loop=None):
     if is_url(message_text):
         async with ctx.channel.typing():
             loop = loop or asyncio.get_event_loop()
-            player = await YTDLSource.from_url(message_text, stream=True, loop=loop)
+            music_player = await YTDLSource.from_url(message_text, stream=True, loop=loop)
 
-            # Stop current song (if playing)
-            if voice_client and voice_client.is_playing():
-                voice_client.stop()
             # Load lib opus
             load_opus_lib()
-            voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
 
-        await ctx.channel.send(f"🎵 PLaying: {query}")
+            guild_id = ctx.guild.id
+            if guild_id not in music_queues:
+                music_queues[guild_id] = []
+
+            if voice_client.is_playing():
+                music_queues[guild_id].append(music_player.title)
+                await ctx.channel.send(f"📥 Add to queue: {music_player.title}")
+            else:
+                voice_client.play(music_player, after=lambda e: play_next(ctx))
+                await ctx.channel.send(f"🎶 Playing: {music_player.title}")
     else:
-        await ctx.channel.send(f"🎵 Đang phát: {query}")
+        async with ctx.channel.typing():
+            loop = loop or asyncio.get_event_loop()
+            music_player = await YTDLSource.from_url(query, stream=True, loop=loop)
+
+            # Load lib opus
+            load_opus_lib()
+
+            guild_id = ctx.guild.id
+            if guild_id not in music_queues:
+                music_queues[guild_id] = []
+
+            if voice_client.is_playing():
+                music_queues[guild_id].append(music_player.title)
+                await ctx.channel.send(f"📥 Add to queue: {music_player.title}")
+            else:
+                voice_client.play(music_player, after=lambda e: play_next(ctx))
+                await ctx.channel.send(f"🎶 Playing: {music_player.title}")
+
+async def skip(ctx):
+    voice_client = ctx.guild.voice_client
+    if voice_client and voice_client.is_playing():
+        voice_client.stop()  # after callback sẽ tự gọi play_next
+        await ctx.channel.send("⏭️ Skipped.")
+    else:
+        await ctx.channel.send("❗ No song is playing.")
+
+async def show_queue(ctx):
+    guild_id = ctx.guild.id
+    queue = music_queues.get(guild_id, [])
+    if not queue:
+        await ctx.channel.send("📭 Empty queue.")
+    else:
+        msg = "\n".join([f"{idx+1}. {song.title}" for idx, song in enumerate(queue)])
+        await ctx.channel.send(f"📜 Queue:\n{msg}")
 
 # --- !stop ---
 async def stop(ctx):
-
     # Config bot
     voice_client = ctx.guild.voice_client
 
@@ -99,6 +137,13 @@ async def stop(ctx):
         await ctx.channel.send("🛑 Stop playing music and leave voice channel.")
     else:
         await ctx.channel.send("❗ Bot doesn't connect any voice channel.")
+
+def play_next(ctx):
+    guild_id = ctx.guild.id
+    if music_queues.get(guild_id):
+        next_song = music_queues[guild_id].pop(0)
+        vc = ctx.guild.voice_client
+        vc.play(next_song, after=lambda e: play_next(ctx))
 
 def load_opus_lib():
     system = platform.system()

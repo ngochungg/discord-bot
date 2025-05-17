@@ -1,5 +1,5 @@
 from modules.ai_cmd import summarize, translate, fix_grammar
-from modules.music_cmd import play, stop
+from modules.music_cmd import play, stop, skip, show_queue
 from modules.pi_cmd import status, docker_ps, update
 
 async def on_sys_cmd(message):
@@ -22,6 +22,10 @@ async def on_sys_cmd(message):
     elif message.content.startswith("!play"):
         message_text = message.content[len("!play"):].strip()
         await play(message, message_text=message_text)
+    elif message.content.startswith("!skip"):
+        await skip(message)
+    elif message.content.startswith("!queue"):
+        await show_queue(message)
     elif message.content.startswith("!stop"):
         await stop(message)
     elif message.content.startswith("!help"):
