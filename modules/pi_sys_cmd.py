@@ -1,4 +1,5 @@
 from modules.ai_cmd import summarize, translate, fix_grammar
+from modules.music_cmd import play, stop
 from modules.pi_cmd import status, docker_ps, update
 
 async def on_sys_cmd(message):
@@ -18,6 +19,11 @@ async def on_sys_cmd(message):
         await translate(message, message_text=message_text)
     elif message.content.startswith("!fix_grammar"):
         await fix_grammar(message)
+    elif message.content.startswith("!play"):
+        message_text = message.content[len("!play"):].strip()
+        await play(message, message_text=message_text)
+    elif message.content.startswith("!stop"):
+        await stop(message)
     elif message.content.startswith("!help"):
         help_text = """```
 **List commands:**

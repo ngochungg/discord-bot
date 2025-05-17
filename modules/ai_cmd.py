@@ -1,10 +1,9 @@
 import os
-import re
-from pathlib import Path
-
 import requests
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
+from pathlib import Path
+from utils.check_text_type import is_url, is_vietnamese
 from utils.long_message import send_long_message
 
 ALLOWED_USER_IDS = [377676460334514176]
@@ -173,17 +172,3 @@ async def fix_grammar(ctx):
         await send_long_message(ctx.channel, data) or "❌ No response from Herta."
     except requests.exceptions.RequestException:
         await ctx.channel.send("⚠️ Failed to connect to Herta API.")
-
-def is_url(text: str) -> bool:
-    # Regex đơn giản để nhận diện URL
-    url_pattern = re.compile(
-        r'^(https?:\/\/)?'        # http:// hoặc https:// (có thể có hoặc không)
-        r'([\w\-]+\.)+[\w]{2,}'   # domain, ví dụ: example.com
-        r'(\/[\w\-._~:\/?#\[\]@!$&\'()*+,;=%]*)?$'  # path (tùy chọn)
-    )
-    return bool(url_pattern.match(text.strip()))
-
-def is_vietnamese(text: str) -> bool:
-    # Kiểm tra xem có dấu tiếng Việt không
-    pattern = re.compile(r"[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]", re.IGNORECASE)
-    return bool(pattern.search(text))
