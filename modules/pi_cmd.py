@@ -3,6 +3,7 @@ import asyncio
 import datetime
 import os
 import subprocess
+import aiohttp
 import psutil
 import requests
 
@@ -35,19 +36,18 @@ async def status(ctx):
     uptime = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
 
     # Network monitoring
-    net1 = psutil.net_io_counters()
-    await asyncio.sleep(1)  # Wait 1 second
-    net2 = psutil.net_io_counters()
-
-    upload_speed = (net2.bytes_sent - net1.bytes_sent) / 1024  # in KB/s
-    download_speed = (net2.bytes_recv - net1.bytes_recv) / 1024  # in KB/s
+    upload, download = await get_network_speed()
+    if upload is None or download is None:
+        net_text = "Không lấy được thông tin mạng."
+    else:
+        net_text = f"⬆ {upload} KB/s | ⬇ {download} KB/s"
 
     text = (
         f"\n```bash\n"
         f"💻 CPU:     {cpu}%\n"
         f"🧠 RAM:     {mem.percent}% (usable {mem.available // (1024*1024)} MB)\n"
         f"💾 Disk:    {disk.percent}% ({disk.used // (1024*1024*1024)}GB/{disk.total // (1024*1024*1024)}GB)\n"
-        f"🌐 Network: ⬆ {upload_speed:.1f} KB/s | ⬇ {download_speed:.1f} KB/s\n"
+        f"🌐 Network: {net_text}\n"
         f"⏱️ Uptime:  {str(uptime).split('.')[0]}\n"
         f"```"
     )
@@ -91,3 +91,15 @@ async def update(ctx):
         await ctx.channel.send(
             f"❌ Update failed (exit code {e.returncode}):\n```bash\n{snippet}\n```"
         )
+
+
+async def get_network_speed():
+    url = "http://update-manager:20000/network-speed"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return data['upload_kb'], data['download_kb']
+    except Exception:
+        return None, None
