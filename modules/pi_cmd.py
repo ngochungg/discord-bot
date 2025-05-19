@@ -102,6 +102,6 @@ async def get_network_speed():
                     data = await resp.json()
                     return data['upload_kb'], data['download_kb']
                 else:
-                    return 0, 0
+                    return None, None
     except Exception:
-        return 0, 0
+        return None, None
