@@ -1,4 +1,5 @@
 # modules/pi_cmd.py
+import asyncio
 import datetime
 import os
 import subprocess
@@ -23,18 +24,35 @@ project_dir = __File__.parent
 async def status(ctx):
     if ctx.author.id not in ALLOWED_USER_IDS:
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
+        return
+
     await ctx.channel.send(f"🚀 Checking status...")
+
+    # Basic info
     cpu = psutil.cpu_percent(interval=1)
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
     uptime = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
+
+    # Network monitoring
+    net1 = psutil.net_io_counters()
+    await asyncio.sleep(1)  # Wait 1 second
+    net2 = psutil.net_io_counters()
+
+    upload_speed = (net2.bytes_sent - net1.bytes_sent) / 1024  # in KB/s
+    download_speed = (net2.bytes_recv - net1.bytes_recv) / 1024  # in KB/s
+
     text = (
-        f"\n```bash\n**💻CPU:** {cpu}%\n"
-        f"**🧠RAM:** {mem.percent}% (usable {mem.available // (1024*1024)} MB)\n"
-        f"**💾Disk:** {disk.percent}% ({disk.used // (1024*1024*1024)}GB/{disk.total // (1024*1024*1024)}GB)\n"
-        f"**⏱️Uptime:** {str(uptime).split('.')[0]}\n```"
+        f"\n```bash\n"
+        f"💻 CPU:     {cpu}%\n"
+        f"🧠 RAM:     {mem.percent}% (usable {mem.available // (1024*1024)} MB)\n"
+        f"💾 Disk:    {disk.percent}% ({disk.used // (1024*1024*1024)}GB/{disk.total // (1024*1024*1024)}GB)\n"
+        f"🌐 Network: ⬆ {upload_speed:.1f} KB/s | ⬇ {download_speed:.1f} KB/s\n"
+        f"⏱️ Uptime:  {str(uptime).split('.')[0]}\n"
+        f"```"
     )
-    await ctx.channel.send(f"{text}")
+
+    await ctx.channel.send(text)
 
 # --- !docker ps: Show all container Docker are running ---
 async def docker_ps(ctx):
