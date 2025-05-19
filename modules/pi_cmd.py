@@ -94,7 +94,7 @@ async def update(ctx):
 
 
 async def get_network_speed():
-    url = "http://update-manager:20000/network-speed"
+    url = "http://localhost:20000/network-speed"
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
