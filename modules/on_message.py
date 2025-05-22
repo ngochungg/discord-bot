@@ -3,6 +3,8 @@ import requests
 
 from dotenv import load_dotenv
 
+from utils.long_message import send_long_message
+
 MODEL_NAME = "the-herta"
 TRIGGER_NAME = ["herta", "hey Herta", "hey herta", "Herta?", "herta?", "yo herta", "yo Herta"]
 load_dotenv()
@@ -76,4 +78,4 @@ async def handle_message(message, client):
         # Add assistant reply to conversation
         conversation[usr_id].append({"role": "assistant", "content": reply})
 
-        await message.channel.send(f"{reply}")
+        await send_long_message(message.channel,f"{reply}")

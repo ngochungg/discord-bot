@@ -38,7 +38,7 @@ async def status(ctx):
     # Network monitoring
     upload, download = await get_network_speed()
     if upload is None or download is None:
-        net_text = "Không lấy được thông tin mạng."
+        net_text = f"❌Cannot get network speed. Try again later."
     else:
         net_text = f"⬆ {upload} KB/s | ⬇ {download} KB/s"
 
