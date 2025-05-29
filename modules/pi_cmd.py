@@ -113,7 +113,7 @@ async def minecraft_server(ctx):
         error_output = e.stderr or e.stdout or "Unknown error"
         await send_long_sys_message(
             ctx.channel,
-            f"❌ Failed to start server (exit code {e.returncode}):\n```bash\n{error_output}\n```"
+            f"❌ Failed to start server (exit code {e.returncode}):\n{error_output}\n"
         )
 
 # --- Docker command field ---
