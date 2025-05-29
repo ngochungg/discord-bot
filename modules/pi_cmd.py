@@ -103,7 +103,7 @@ async def minecraft_server(ctx):
     await ctx.channel.send(f"🌐 Starting minecraft server...")
 
     try:
-        output = subprocess.run("docker run minecraft autostop", capture_output=True, text=True, check=True, shell=True)
+        output = subprocess.run("docker start minecraft autostop", capture_output=True, text=True, check=True, shell=True)
         msg = output.stdout
         if not msg:
             msg = f"❌ Cannot start minecraft server."
