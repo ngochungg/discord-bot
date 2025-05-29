@@ -21,6 +21,23 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 __File__ = Path(__file__).parent.resolve()
 project_dir = __File__.parent
 
+# --- Add-on(s) function field ---
+# --- Get network speed ---
+async def get_network_speed():
+    url = "http://update-manager:20000/network-speed"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return data['upload_mbps'], data['download_mbps']
+                else:
+                    return None, None
+    except Exception as e:
+        print(f"Error fetching network speed: {e}")
+        return None, None
+
+# ---General command field ---
 # --- !status: Show CPU, RAM, Disk and time uptime ---
 async def status(ctx):
     if ctx.author.id not in ALLOWED_USER_IDS:
@@ -54,26 +71,13 @@ async def status(ctx):
 
     await ctx.channel.send(text)
 
-# --- !docker ps: Show all container Docker are running ---
-async def docker_ps(ctx):
-    if ctx.author.id not in ALLOWED_USER_IDS:
-        await ctx.channel.send(f"⛔️You are not allowed to use this command.")
-    await ctx.channel.send(f"🐳 Checking container...")
-    try:
-        output = subprocess.run('docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Size}}"', capture_output=True, text=True, check=True, shell=True)
-        msg = output.stdout
-        if not msg:
-            msg = "(No container is running.)"
-        await send_long_sys_message(ctx.channel, msg)
-    except subprocess.CalledProcessError as e:
-        await send_long_sys_message(ctx.channel, "Error occurred while checking container" + e.stdout)
-
 # --- !update: Git pull and restart bot ---
 async def update(ctx):
     if ctx.author.id not in ALLOWED_USER_IDS:
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
 
     await ctx.channel.send("📦 Pulling latest code & rebuilding bot...")
+
     try:
         response = requests.post("http://update-manager:20000/update")
         data = response.json()
@@ -97,6 +101,7 @@ async def minecraft_server(ctx):
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
 
     await ctx.channel.send(f"🌐 Starting minecraft server...")
+
     try:
         output = subprocess.run("docker run minecraft autostop", capture_output=True, text=True, check=True, shell=True)
         msg = output.stdout
@@ -111,16 +116,25 @@ async def minecraft_server(ctx):
             f"❌ Failed to start server (exit code {e.returncode}):\n```bash\n{error_output}\n```"
         )
 
-async def get_network_speed():
-    url = "http://update-manager:20000/network-speed"
+# --- Docker command field ---
+# --- !docker ps: Show all container Docker are running ---
+async def docker_ps(ctx):
+    if ctx.author.id not in ALLOWED_USER_IDS:
+        await ctx.channel.send(f"⛔️You are not allowed to use this command.")
+
+    await ctx.channel.send(f"🐳 Checking container...")
+
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    return data['upload_mbps'], data['download_mbps']
-                else:
-                    return None, None
-    except Exception as e:
-        print(f"Error fetching network speed: {e}")
-        return None, None
+        output = subprocess.run('docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Size}}"', capture_output=True, text=True, check=True, shell=True)
+        msg = output.stdout
+        if not msg:
+            msg = "(No container is running.)"
+        await send_long_sys_message(ctx.channel, msg)
+    except subprocess.CalledProcessError as e:
+        await send_long_sys_message(ctx.channel, "Error occurred while checking container" + e.stdout)
+
+# --- !docker compose up <container_name> -d --build : Rebuild container ---
+# --- !docker compose down <container_name> : Stop container ---
+
+# --- System command field ---
+# --- !homelab_ls: Show homelab dir
