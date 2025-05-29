@@ -84,7 +84,7 @@ async def update(ctx):
 
         output = data.get("output", "No output")
         if response.status_code == 200:
-            await send_long_sys_message(ctx.channel,f"\n```bash\n{output}\n```")
+            await send_long_sys_message(ctx.channel,f"\n\n{output}\n")
         else:
             await send_long_sys_message(ctx.channel, f"❌ Error: {output}")
 
@@ -92,7 +92,7 @@ async def update(ctx):
         error_output = e.stderr or e.stdout or "Unknown error"
         await send_long_sys_message(
             ctx.channel,
-            f"❌ Update failed (exit code {e.returncode}):\n```bash\n{error_output}\n```"
+            f"❌ Update failed (exit code {e.returncode}):\n{error_output}\n"
         )
 
 # --- !minecraft_server: Start minecraft server ---
