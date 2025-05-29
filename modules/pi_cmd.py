@@ -79,19 +79,37 @@ async def update(ctx):
         data = response.json()
 
         output = data.get("output", "No output")
-        snippet = output[:1900] + ("… (truncated)" if len(output) > 1900 else "")
         if response.status_code == 200:
-            await ctx.channel.send(f"\n```bash\n{snippet}\n```")
+            await send_long_sys_message(ctx.channel,f"\n```bash\n{output}\n```")
         else:
-            await ctx.channel.send(f"❌ Error: {snippet}")
+            await send_long_sys_message(ctx.channel, f"❌ Error: {output}")
 
     except subprocess.CalledProcessError as e:
         error_output = e.stderr or e.stdout or "Unknown error"
-        snippet = error_output[:1900] + ("… (truncated)" if len(error_output) > 1900 else "")
-        await ctx.channel.send(
-            f"❌ Update failed (exit code {e.returncode}):\n```bash\n{snippet}\n```"
+        await send_long_sys_message(
+            ctx.channel,
+            f"❌ Update failed (exit code {e.returncode}):\n```bash\n{error_output}\n```"
         )
 
+# --- !minecraft_server: Start minecraft server ---
+async def minecraft_server(ctx):
+    if ctx.author.id not in ALLOWED_USER_IDS:
+        await ctx.channel.send(f"⛔️You are not allowed to use this command.")
+
+    await ctx.channel.send(f"🌐 Starting minecraft server...")
+    try:
+        output = subprocess.run("docker run minecraft autostop", capture_output=True, text=True, check=True, shell=True)
+        msg = output.stdout
+        if not msg:
+            msg = f"❌ Cannot start minecraft server."
+        await send_long_sys_message(ctx.channel, msg)
+
+    except subprocess.CalledProcessError as e:
+        error_output = e.stderr or e.stdout or "Unknown error"
+        await send_long_sys_message(
+            ctx.channel,
+            f"❌ Failed to start server (exit code {e.returncode}):\n```bash\n{error_output}\n```"
+        )
 
 async def get_network_speed():
     url = "http://update-manager:20000/network-speed"
@@ -100,8 +118,9 @@ async def get_network_speed():
             async with session.get(url) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    return data['upload_kb'], data['download_kb']
+                    return data['upload_mbps'], data['download_mbps']
                 else:
                     return None, None
-    except Exception:
+    except Exception as e:
+        print(f"Error fetching network speed: {e}")
         return None, None

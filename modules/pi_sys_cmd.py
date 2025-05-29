@@ -1,6 +1,7 @@
 from modules.ai_cmd import summarize, translate, fix_grammar
 from modules.music_cmd import play, stop, skip, show_queue
-from modules.pi_cmd import status, docker_ps, update
+from modules.pi_cmd import status, docker_ps, update, minecraft_server
+
 
 async def on_sys_cmd(message):
     if message.content.startswith("!status"):
@@ -28,6 +29,9 @@ async def on_sys_cmd(message):
         await show_queue(message)
     elif message.content.startswith("!stop"):
         await stop(message)
+    elif message.content.startswith("!minecraft_server"):
+        await minecraft_server(message)
+
     elif message.content.startswith("!help"):
         help_text = """```
 **List commands:**
@@ -38,6 +42,7 @@ async def on_sys_cmd(message):
 !summarize <text/url> - Summarize text or url
 !translate <text> - Translate vi <-> en
 !fix_grammar <text> - Fix English grammar 
+!minecraft_server - Start a minecraft server
 !help - Show this help
 ```"""
         await message.channel.send(help_text)

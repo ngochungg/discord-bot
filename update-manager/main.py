@@ -2,6 +2,7 @@ import time
 import psutil
 from flask import Flask, jsonify
 import subprocess
+import speedtest
 
 app = Flask(__name__)
 
@@ -22,16 +23,15 @@ def update():
 
 @app.route('/network-speed')
 def network_speed():
-    net1 = psutil.net_io_counters()
-    time.sleep(1)
-    net2 = psutil.net_io_counters()
+    st = speedtest.Speedtest()
+    st.get_best_server()
+    download_bps = st.download()
+    upload_bps = st.upload()
 
-    upload_kb = (net2.bytes_sent - net1.bytes_sent) / 1024
-    download_kb = (net2.bytes_recv - net1.bytes_recv) / 1024
-
+    # Chuyển từ bit/s sang Mbit/s
     return jsonify({
-        "upload_kb": round(upload_kb, 1),
-        "download_kb": round(download_kb, 1)
+        "upload_mbps": round(upload_bps / 1_000_000, 2),
+        "download_mbps": round(download_bps / 1_000_000, 2)
     })
 
 if __name__ == "__main__":
