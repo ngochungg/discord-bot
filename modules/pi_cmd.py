@@ -197,10 +197,13 @@ async def compose(ctx):
 
 # --- Processing function for !compose ---
 async def start_compose_service(service_name, action, ctx):
+
+    # Check action
     if action not in ["up", "down", "restart"]:
         await ctx.channel.send("⚠️ Invalid action! Please use: `up`, `down`, `restart`")
         return
 
+    # Take path
     compose_path = find_compose_file(service_name)
     if not compose_path:
         await ctx.channel.send(f"❌ Service cannot found `{service_name}` in homelab.")
@@ -208,6 +211,7 @@ async def start_compose_service(service_name, action, ctx):
 
     result = run_compose_action(compose_path, service_name, action)
 
+    # Check response
     if result.returncode == 0:
         await ctx.channel.send(f"✅ `{action}` successfully for `{service_name}`.")
     else:
