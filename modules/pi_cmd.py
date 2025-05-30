@@ -211,7 +211,7 @@ async def start_compose_service(service_name, action, ctx):
     if result.returncode == 0:
         await ctx.channel.send(f"✅ `{action}` successfully for `{service_name}`.")
     else:
-        await ctx.channel.send(
+        await send_long_sys_message(ctx.channel,
             f"❌ Error occurs `{action}`:\n```\n{result.stderr.strip()}\n```"
         )
 
