@@ -21,9 +21,9 @@ def update():
         stdout = stdout_bytes.decode("utf-8").strip()
         stderr = stderr_bytes.decode("utf-8").strip()
 
-        print("Return code:", process.returncode)
-        print("STDOUT:", stdout)
-        print("STDERR:", stderr)
+        print("Return code:", process.returncode, flush=True)
+        print("STDOUT:", stdout, flush=True)
+        print("STDERR:", stderr, flush=True)
 
         # Nếu returncode là 2 nghĩa là có thay đổi -> restart
         if process.returncode == 2:
