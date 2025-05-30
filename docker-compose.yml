@@ -7,6 +7,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock  # để chạy docker từ trong container
       - /usr/local/bin/docker:/usr/local/bin/docker
       - .:/app  # mount chính project vào container
+      - /home/meou/homelab:/mnt/homelab  # Mount homelab file to container
     working_dir: /app
     tty: true
     environment:
@@ -19,7 +20,6 @@ services:
     container_name: update-manager
     volumes:
       - .:/app/  # Mount thư mục update-manager vào container
-      - /home/meou/homelab:/mnt/homelab   # Mount homelab file to container
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/local/bin/docker:/usr/local/bin/docker
     working_dir: /app/update-manager

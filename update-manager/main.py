@@ -9,16 +9,30 @@ app = Flask(__name__)
 @app.route("/update", methods=["POST"])
 def update():
     try:
-        result = subprocess.Popen(["bash", "./update_bot.sh"])
-        # return "Update triggered successfully", 200
-        return jsonify({
-            "success": True,
-            "output": result.stdout or "✅ Update bot completed."
-        }), 200
-    except subprocess.CalledProcessError as e:
+        process = subprocess.Popen(
+            ["bash", "./update_bot.sh"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        stdout, stderr = process.communicate()
+
+        print(stdout.decode())
+
+        if process.returncode == 0:
+            return jsonify({
+                "success": True,
+                "output": stdout.decode() or "✅ Update bot completed."
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "output": stderr.decode() or "❌ Update failed."
+            }), 500
+
+    except Exception as e:
         return jsonify({
             "success": False,
-            "output": e.stderr or e.stdout or str(e)
+            "output": f"❌ Exception occurred: {str(e)}"
         }), 500
 
 @app.route('/network-speed')
