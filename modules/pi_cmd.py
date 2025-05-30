@@ -110,7 +110,7 @@ async def update(ctx):
         if response.status_code == 200:
             await send_long_sys_message(ctx.channel,f"\n\n{output}\n")
         else:
-            await send_long_sys_message(ctx.channel, f"❌ Error: {output}")
+            await send_long_sys_message(ctx.channel, f"❌ Request error: {output}")
 
     except subprocess.CalledProcessError as e:
         error_output = e.stderr or e.stdout or "Unknown error"
