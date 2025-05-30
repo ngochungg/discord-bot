@@ -222,7 +222,7 @@ async def homelab_ls(ctx):
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
 
     await ctx.channel.send(f"💾 Checking project...")
-    output = subprocess.run('ls' + PI_DIR, capture_output=True, text=True, check=True, shell=True)
+    output = subprocess.run('ls ' + PI_DIR, capture_output=True, text=True, check=True, shell=True)
     msg = output.stdout
     if not msg:
         msg = f"⚠️ Cannot find homelab project."
