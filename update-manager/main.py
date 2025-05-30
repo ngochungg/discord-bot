@@ -15,7 +15,11 @@ def update():
             stderr=subprocess.PIPE
         )
 
-        stdout, stderr = process.communicate()
+        stdout_bytes, stderr_bytes = process.communicate()
+
+        # Decode rõ ràng từ bytes -> string
+        stdout = stdout_bytes.decode("utf-8").strip()
+        stderr = stderr_bytes.decode("utf-8").strip()
 
         if process.returncode == 0:
             return jsonify({
