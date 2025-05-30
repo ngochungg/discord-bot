@@ -22,7 +22,7 @@ __File__ = Path(__file__).parent.resolve()
 project_dir = __File__.parent
 
 # File in Pi path
-PI_DIR = "/home/meou/homelab"
+PI_DIR = "/mnt/homelab"
 
 # --- Add-on(s) function field ---
 # --- Get network speed ---
