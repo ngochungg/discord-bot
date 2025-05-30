@@ -16,29 +16,31 @@ def update():
         )
 
         stdout_bytes, stderr_bytes = process.communicate()
-        return_code = process.returncode
 
+        # Decode rõ ràng từ bytes -> string
         stdout = stdout_bytes.decode("utf-8").strip()
         stderr = stderr_bytes.decode("utf-8").strip()
 
-        print(f"Return code: {return_code}")
-        print(f"STDOUT: {stdout}")
-        print(f"STDERR: {stderr}")
+        print("Return code:", process.returncode, flush=True)
+        print("STDOUT:", stdout, flush=True)
+        print("STDERR:", stderr, flush=True)
 
-        # Dù return code không phải 0, vẫn trả JSON bình thường
-        return jsonify({
-            "success": return_code == 0,
-            "return_code": return_code,
-            "stdout": stdout,
-            "stderr": stderr
-        }), 200
+        if process.returncode == 0:
+            return jsonify({
+                "success": True,
+                "output": stdout or "✅ Update bot completed."
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "output": stderr or "❌ Update failed."
+            }), 500
 
     except Exception as e:
         return jsonify({
             "success": False,
             "output": f"❌ Exception occurred: {str(e)}"
         }), 500
-
 
 @app.route('/network-speed')
 def network_speed():
