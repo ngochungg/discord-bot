@@ -17,7 +17,7 @@ else
 
     sleep 3
 
-    #docker restart the-herta || { echo "❌ Docker restart failed"; exit 1; }
+    docker restart the-herta || { echo "❌ Docker restart failed"; exit 1; }
 fi
 
 echo "✅ Bot updated and restarted!"
