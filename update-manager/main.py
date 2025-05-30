@@ -15,15 +15,17 @@ def update():
             stderr=subprocess.PIPE
         )
 
+        stdout, stderr = process.communicate()
+
         if process.returncode == 0:
             return jsonify({
                 "success": True,
-                "output": process.stdout or "✅ Update bot completed."
+                "output": stdout or "✅ Update bot completed."
             }), 200
         else:
             return jsonify({
                 "success": False,
-                "output": process.stderr or "❌ Update failed."
+                "output": stderr or "❌ Update failed."
             }), 500
 
     except Exception as e:
