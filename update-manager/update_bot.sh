@@ -9,10 +9,11 @@ git_output=$(git pull origin main) || {
   exit 1
 }
 
+echo "$git_output"
+
 if echo "$git_output" | grep -q "Already up to date."; then
     echo "✅ No changes, no need to restart."
 else
-    echo "$git_output"
     echo "♻️ Changes detected! Restarting container..."
     docker restart the-herta || {
         echo "❌ Docker restart failed"
