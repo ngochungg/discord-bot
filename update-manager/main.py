@@ -21,10 +21,6 @@ def update():
         stdout = stdout_bytes.decode("utf-8").strip()
         stderr = stderr_bytes.decode("utf-8").strip()
 
-        print("Return code:", process.returncode, flush=True)
-        print("STDOUT:", stdout, flush=True)
-        print("STDERR:", stderr, flush=True)
-
         if process.returncode == 0:
             return jsonify({
                 "success": True,
