@@ -16,7 +16,7 @@ if [[ "$git_output" != "Already up to date." ]]; then
     docker restart the-herta || { echo "❌ Docker restart failed"; exit 1; }
 else
     echo "✅ No changes, no need to restart."
-    return
+    exit 0
 fi
 
 sleep 5
