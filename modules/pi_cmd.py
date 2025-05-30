@@ -211,6 +211,7 @@ async def start_compose_service(service_name, action, ctx):
 
     result = run_compose_action(compose_path, service_name, action)
 
+    # Check response
     if result.returncode == 0:
         await ctx.channel.send(f"✅ `{action}` successfully for `{service_name}`.")
     else:
