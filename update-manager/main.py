@@ -30,7 +30,6 @@ def update():
 
         # ✅ Sau khi trả lời rồi mới restart
         if return_code == 0 and "Already up to date." not in stdout:
-            time.sleep(10)
             subprocess.Popen(["docker", "restart", "the-herta"])
 
         return jsonify(response), 200 if return_code == 0 else 500
