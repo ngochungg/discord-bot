@@ -22,21 +22,18 @@ def update():
         stdout = stdout_bytes.decode("utf-8").strip()
         stderr = stderr_bytes.decode("utf-8").strip()
 
+        # ⚠️ Trả kết quả về trước — bot sẽ nhận được tin nhắn
+        response = {
+            "success": return_code == 0,
+            "output": stdout if return_code == 0 else stderr
+        }
 
-        print(f"Return code: {return_code}")
-        print(f"STDOUT: {stdout}")
-        print(f"STDERR: {stderr}")
+        # ✅ Sau khi trả lời rồi mới restart
+        if return_code == 0 and "Already up to date." not in stdout:
+            time.sleep(10)
+            subprocess.Popen(["docker", "restart", "the-herta"])
 
-        if process.returncode == 0:
-            return jsonify({
-                "success": True,
-                "output": stdout or "✅ Update bot completed."
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "output": stderr or "❌ Update failed."
-            }), 500
+        return jsonify(response), 200 if return_code == 0 else 500
 
     except Exception as e:
         return jsonify({
