@@ -103,10 +103,14 @@ async def update(ctx):
     await ctx.channel.send("📂 Pulling latest code...")
 
     try:
+        # Call API
         response = requests.post("http://update-manager:20000/update")
+        # Get response
         data = response.json()
 
+        # Get data
         output = data.get("output", "No output")
+        # Check response code
         if response.status_code == 200:
             await send_long_sys_message(ctx.channel,f"\n\n{output}\n")
         else:
