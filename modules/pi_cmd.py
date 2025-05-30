@@ -100,7 +100,7 @@ async def update(ctx):
     if ctx.author.id not in ALLOWED_USER_IDS:
         await ctx.channel.send(f"⛔️You are not allowed to use this command.")
 
-    await ctx.channel.send("📦 Pulling latest code & rebuilding bot...")
+    await ctx.channel.send("📂 Pulling latest code...")
 
     try:
         response = requests.post("http://update-manager:20000/update")
