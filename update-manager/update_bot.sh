@@ -5,7 +5,9 @@ set -e
 # Pull code mới từ GitHub
 echo "📂 Pulling latest code..."
 cd /app
-git_output=git pull origin main || { echo "❌ Git pull failed"; exit 1; }
+git_output=$(git pull origin main) || {
+  echo "❌ Git pull failed"; exit 1;
+}
 # shellcheck disable=SC2154
 echo "$git_output"
 
