@@ -21,6 +21,10 @@ def update():
         stdout = stdout_bytes.decode("utf-8").strip()
         stderr = stderr_bytes.decode("utf-8").strip()
 
+        print("Return code:", process.returncode)
+        print("STDOUT:", stdout)
+        print("STDERR:", stderr)
+
         # Nếu returncode là 2 nghĩa là có thay đổi -> restart
         if process.returncode == 2:
             restart_result = subprocess.run(["docker", "restart", "the-herta"], capture_output=True, text=True, check=True)
@@ -30,9 +34,6 @@ def update():
                     "output": f"{stdout}\n\n♻️ Container restarted successfully!"
                 }), 200
             else:
-                print("Return code:", process.returncode)
-                print("STDOUT:", stdout)
-                print("STDERR:", stderr)
                 return jsonify({
                     "success": False,
                     "output": f"{stdout}\n\n❌ Failed to restart container:\n{restart_result.stderr}"
