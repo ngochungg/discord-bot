@@ -15,7 +15,7 @@ else
     echo "♻️ Changes detected! Restarting container..."
     echo "$git_output"
 
-    sleep 3
+    sleep 10
 
     docker restart the-herta || { echo "❌ Docker restart failed"; exit 1; }
 fi
