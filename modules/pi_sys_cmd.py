@@ -1,6 +1,6 @@
 from modules.ai_cmd import summarize, translate, fix_grammar
 from modules.music_cmd import play, stop, skip, show_queue
-from modules.pi_cmd import status, docker_ps, update, minecraft_server
+from modules.pi_cmd import status, docker_ps, update, minecraft_server, compose, homelab_ls
 
 
 async def on_sys_cmd(message):
@@ -31,6 +31,10 @@ async def on_sys_cmd(message):
         await stop(message)
     elif message.content.startswith("!minecraft_server"):
         await minecraft_server(message)
+    elif message.content.startswith("!compose"):
+        await compose(message)
+    elif message.content.startswith("!homelab_ls"):
+        await homelab_ls(message)
 
     elif message.content.startswith("!help"):
         help_text = """```
