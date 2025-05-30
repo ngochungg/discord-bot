@@ -39,6 +39,7 @@ def update():
             "output": f"❌ Exception occurred: {str(e)}"
         }), 500
 
+
 @app.route('/network-speed')
 def network_speed():
     st = speedtest.Speedtest()
