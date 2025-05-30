@@ -16,39 +16,22 @@ def update():
         )
 
         stdout_bytes, stderr_bytes = process.communicate()
+        return_code = process.returncode
 
-        # Decode rõ ràng từ bytes -> string
         stdout = stdout_bytes.decode("utf-8").strip()
         stderr = stderr_bytes.decode("utf-8").strip()
 
-        print("Return code:", process.returncode, flush=True)
-        print("STDOUT:", stdout, flush=True)
-        print("STDERR:", stderr, flush=True)
+        print(f"Return code: {return_code}")
+        print(f"STDOUT: {stdout}")
+        print(f"STDERR: {stderr}")
 
-        # Nếu returncode là 2 nghĩa là có thay đổi -> restart
-        if process.returncode == 2:
-            restart_result = subprocess.Popen(["docker", "restart", "the-herta"])
-            if restart_result.returncode == 0:
-                return jsonify({
-                    "success": True,
-                    "output": f"{stdout}\n\n♻️ Container restarted successfully!"
-                }), 200
-            else:
-                return jsonify({
-                    "success": False,
-                    "output": f"{stdout}\n\n❌ Failed to restart container:\n{restart_result.stderr}"
-                }), 500
-
-        elif process.returncode == 0:
-            return jsonify({
-                "success": True,
-                "output": stdout or "✅ Update bot completed."
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "output": stderr or "❌ Update failed."
-            }), 500
+        # Dù return code không phải 0, vẫn trả JSON bình thường
+        return jsonify({
+            "success": return_code == 0,
+            "return_code": return_code,
+            "stdout": stdout,
+            "stderr": stderr
+        }), 200
 
     except Exception as e:
         return jsonify({
