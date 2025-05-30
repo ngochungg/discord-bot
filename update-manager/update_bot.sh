@@ -11,6 +11,8 @@ git_output=$(git pull origin main) || {
 
 echo "$git_output"
 
+sleep 10
+
 if echo "$git_output" | grep -q "Already up to date."; then
     echo "✅ No changes, no need to restart."
 else
