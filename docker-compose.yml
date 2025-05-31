@@ -7,7 +7,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock  # để chạy docker từ trong container
       - /usr/local/bin/docker:/usr/local/bin/docker
       - .:/app  # mount chính project vào container
-      - /home/meou/homelab:/mnt/homelab  # Mount homelab file to container
+      #- /home/meou/homelab:/mnt/homelab  # Mount homelab file to container
     working_dir: /app
     tty: true
     environment:
@@ -27,4 +27,12 @@ services:
       - "20000:20000"
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
+    restart: always
+
+  gpt4all:
+    build:
+      context: ./gpt4all
+    container_name: gpt4all-j
+    volumes:
+      - ./gpt4all/models:/app/models
     restart: always
