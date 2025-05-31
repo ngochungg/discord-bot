@@ -11,7 +11,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from utils.long_message import send_long_sys_message
 
-ALLOWED_USER_IDS = [377676460334514176]
+ALLOWED_USER_IDS = [377676460334514176, 1235460856838357055]
 
 # --- Setup bot ---
 load_dotenv()
