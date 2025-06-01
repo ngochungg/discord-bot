@@ -32,7 +32,7 @@ services:
   gpt4all:
     build:
       context: ./gpt4all
-    container_name: gpt4all-j
+    container_name: gpt4all
     volumes:
       - ./gpt4all/models:/app/models
     restart: always
