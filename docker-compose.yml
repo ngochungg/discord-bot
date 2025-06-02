@@ -28,11 +28,3 @@ services:
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     restart: always
-
-  gpt4all:
-    build:
-      context: ./gpt4all
-    container_name: gpt4all
-    volumes:
-      - ./gpt4all/models:/app/models
-    restart: always
