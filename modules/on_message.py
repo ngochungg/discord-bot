@@ -51,7 +51,6 @@ def ask_bot(prompt, usr_id):
     except requests.exceptions.RequestException:
         return "⚠️ Failed to connect to Herta API."
 
-
 async def handle_message(message, client):
     if message.author == client.user:
         return

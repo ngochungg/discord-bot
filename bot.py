@@ -2,6 +2,8 @@ import os
 import discord
 
 from dotenv import load_dotenv
+
+from api.main import test
 from modules.on_message import handle_message
 from modules.pi_sys_cmd import on_sys_cmd
 
