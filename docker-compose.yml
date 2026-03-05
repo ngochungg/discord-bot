@@ -1,0 +1,12 @@
+services:
+  discord-bot:
+    build: .
+    container_name: discord_bot
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    pid: "host"
