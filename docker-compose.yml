@@ -9,4 +9,5 @@ services:
       - .env
     volumes:
       - .:/app
+      - /Volumes:/Volumes:ro
     pid: "host"
