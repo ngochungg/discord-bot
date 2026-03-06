@@ -15,6 +15,7 @@ class Monitor(commands.Cog):
         cpu_usage = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
         # disk = psutil.disk_usage('/')
+        disk_info = ""
         uname = platform.uname()
         
         # Tạo giao diện Embed đẹp mắt
@@ -31,9 +32,9 @@ class Monitor(commands.Cog):
         for part in psutil.disk_partitions():
             if part.mountpoint == '/home' or part.mountpoint == '/srv' or part.mountpoint == '/hdd/storage' or part.mountpoint == '/':
                 disk = psutil.disk_usage(part.mountpoint)
-                embed.add_field(name="💾 Disk", value=f"{disk.percent}%", inline=True)
+                disk_info += f"{disk.percent}% ({disk.used//1048576}MB / {disk.total//1048576}MB) on {part.mountpoint}\n"
                 break
-        
+        embed.add_field(name="💾 Disk", value=disk_info, inline=True)
         
         embed.set_footer(text=f"Requested by {interaction.user.name}")
         
