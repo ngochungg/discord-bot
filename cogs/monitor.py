@@ -27,7 +27,16 @@ class Monitor(commands.Cog):
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
         embed.add_field(name="🔥 CPU Usage", value=f"{cpu_usage}%", inline=True)
         embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)", inline=True)
-        embed.add_field(name="💾 Disk", value=f"{disk.percent}%", inline=True)
+        disk_text = ""
+        partitions = psutil.disk_partitions()
+        for partition in partitions:
+
+            if 'rw' in partition.opts and not partition.mountpoint.startswith('/private'):
+
+                usage = psutil.disk_usage(partition.mountpoint)
+                disk_text += f"{partition.device}: {usage.percent}% ({usage.used//1048576}MB / {usage.total//1048576}MB)\n"
+                
+        embed.add_field(name="💾 Disk", value=disk_text or "No drive found", inline=False)
         
         embed.set_footer(text=f"Requested by {interaction.user.name}")
         
