@@ -29,7 +29,7 @@ class Monitor(commands.Cog):
         embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)", inline=True)
         
         for part in psutil.disk_partitions():
-            if part.mountpoint == '/home' or part.mountpoint == '/srv' or part.mountpoint == '/hdd/storage':
+            if part.mountpoint == '/home' or part.mountpoint == '/srv' or part.mountpoint == '/hdd/storage' or part.mountpoint == '/':
                 disk = psutil.disk_usage(part.mountpoint)
                 embed.add_field(name="💾 Disk", value=f"{disk.percent}%", inline=True)
                 break
