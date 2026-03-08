@@ -14,8 +14,7 @@ class Monitor(commands.Cog):
         # Lấy thông số hệ thống
         cpu_usage = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
-        # disk = psutil.disk_usage('/')
-        disk_info = ""
+        disk = psutil.disk_usage('/')
         uname = platform.uname()
         
         # Tạo giao diện Embed đẹp mắt
@@ -28,13 +27,7 @@ class Monitor(commands.Cog):
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
         embed.add_field(name="🔥 CPU Usage", value=f"{cpu_usage}%", inline=True)
         embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)", inline=True)
-        
-        for part in psutil.disk_partitions():
-            if part.mountpoint == '/home' or part.mountpoint == '/srv' or part.mountpoint == '/hdd/storage' or part.mountpoint == '/':
-                disk = psutil.disk_usage(part.mountpoint)
-                disk_info += f"{disk.percent}% ({disk.used//1048576}MB / {disk.total//1048576}MB) on {part.mountpoint}\n"
-                break
-        embed.add_field(name="💾 Disk", value=disk_info, inline=True)
+        embed.add_field(name="💾 Disk", value=f"{disk.percent}%", inline=True)
         
         embed.set_footer(text=f"Requested by {interaction.user.name}")
         

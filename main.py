@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 MY_GUILD_ID = os.getenv('MY_GUILD_ID')
-ADMIN_ID = os.getenv('ADMIN_ID')  # Chuyển ADMIN_ID thành số nguyên
+ADMIN_ID = os.getenv('ADMIN_ID')
 
 # 2. Create a bot instance with the specified command prefix and intents
 class MyBot(commands.Bot):
@@ -36,7 +36,7 @@ class MyBot(commands.Bot):
 
         MY_GUILD = discord.Object(id=MY_GUILD_ID)
         self.tree.copy_global_to(guild=MY_GUILD)  # Copy global commands to the specified guild
-        await self.tree.sync()  # Sync the command tree with Discord
+        await self.tree.sync(guild=MY_GUILD)  # Sync the command tree with Discord
         print("✅ Command tree synced with Discord.")
     
     # 5. Define the on_ready event to print a message when the bot is ready
