@@ -15,8 +15,14 @@ class AI(commands.Cog):
     async def ask(self, interaction: discord.Interaction, prompt: str):
         await interaction.response.defer()
 
-        # Call the fetch method of the HuggingFaceClient to get the answer from Mistral
-        answer = self.ai.fetch(prompt)
+        # Define instructions for the AI to ensure concise answers and handle ambiguity
+        instructions = "[Answer the following question in a concise manner " \
+        "maximum 500 words. If the question is ambiguous, ask for clarification. " \
+        "Prioritize getting straight to the point, using the first line if necessary.]\n\n"
+
+        # Call the Gemini API with the user's prompt and get the response
+        enhanced_prompt = f"{instructions}{prompt}"
+        answer = self.ai.fetch(enhanced_prompt)
 
         # Check if the answer exceeds Discord's message limit and truncate if necessary
         if len(answer) > 1900:  # Discord message limit

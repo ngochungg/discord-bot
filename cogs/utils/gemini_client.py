@@ -19,11 +19,7 @@ class GeminiClient:
     
     def fetch(self, prompt):
         payload = {
-            "contents" : [{
-                "parts": [{
-                    "text": prompt
-                }]
-            }]
+            "contents" : [{"parts" : [{"text": prompt}]}],
         }
 
         for attempt in range(3): 
