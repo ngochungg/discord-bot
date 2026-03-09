@@ -14,8 +14,9 @@ class Monitor(commands.Cog):
         # Take system metrics using psutil
         cpu_usage = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
         uname = platform.uname()
+        disk_sdb = psutil.disk_usage('/data/disk-sdb1')
+        disk_sdc = psutil.disk_usage('/data/disk-sdc1')
         
         # Create an embed message to display the system status
         embed = discord.Embed(
@@ -27,7 +28,8 @@ class Monitor(commands.Cog):
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
         embed.add_field(name="🔥 CPU Usage", value=f"{cpu_usage}%", inline=True)
         embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)", inline=True)
-        embed.add_field(name="💾 Disk", value=f"{disk.percent}%", inline=True)
+        embed.add_field(name="💾 Storage 1TB", value=f"{disk_sdb.percent}%", inline=False)
+        embed.add_field(name="💾 Storage 3.6TB", value=f"{disk_sdc.percent}%", inline=False)
         
         embed.set_footer(text=f"Requested by {interaction.user.name}")
         
