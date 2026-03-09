@@ -5,6 +5,8 @@ import psutil
 import platform
 import datetime
 
+from cogs.utils import get_bar
+
 class Monitor(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -15,6 +17,7 @@ class Monitor(commands.Cog):
         cpu_usage = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
         uname = platform.uname()
+        disk = psutil.disk_usage('/')
         disk_sdb = psutil.disk_usage('/data/disk-sdb1')
         disk_sdc = psutil.disk_usage('/data/disk-sdc1')
         
@@ -24,12 +27,17 @@ class Monitor(commands.Cog):
             color=discord.Color.blue(),
             timestamp=datetime.datetime.now()
         )
+
+        storage_info = (
+            f"**Root (/)**: `{disk.percent}%` | {get_bar(disk.percent)}\n"
+            f"**HDD 1TB**: `{disk_sdb.percent}%` | {get_bar(disk_sdb.percent)}\n"
+            f"**HDD 3.6TB**: `{disk_sdc.percent}%` | {get_bar(disk_sdc.percent)}"
+        )
         
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
         embed.add_field(name="🔥 CPU Usage", value=f"{cpu_usage}%", inline=True)
         embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)", inline=True)
-        embed.add_field(name="💾 Storage 1TB", value=f"{disk_sdb.percent}%", inline=False)
-        embed.add_field(name="💾 Storage 3.6TB", value=f"{disk_sdc.percent}%", inline=False)
+        embed.add_field(name="💾 Storage Status", value=storage_info, inline=False)
         
         embed.set_footer(text=f"Requested by {interaction.user.name}")
         
