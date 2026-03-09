@@ -29,9 +29,11 @@ class Monitor(commands.Cog):
         )
 
         storage_info = (
-            f"**Root (/)**:     `{disk.percent}%` | {get_bar(disk.percent)}\n"
-            f"**HDD 1TB**:      `{disk_sdb.percent}%` | {get_bar(disk_sdb.percent)}\n"
-            f"**HDD 3.6TB**:    `{disk_sdc.percent}%` | {get_bar(disk_sdc.percent)}"
+            f"```\n"
+            f"Root (/)  : {str(disk.percent).rjust(5)}% | {get_bar(disk.percent)}\n"
+            f"HDD 1TB   : {str(disk_sdb.percent).rjust(5)}% | {get_bar(disk_sdb.percent)}\n"
+            f"HDD 3.6TB : {str(disk_sdc.percent).rjust(5)}% | {get_bar(disk_sdc.percent)}\n"
+            f"```"
         )
         
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
