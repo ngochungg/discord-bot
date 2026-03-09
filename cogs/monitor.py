@@ -5,7 +5,7 @@ import psutil
 import platform
 import datetime
 
-from cogs.utils import get_bar
+from cogs.utils.get_bar import get_bar
 
 class Monitor(commands.Cog):
     def __init__(self, bot):
