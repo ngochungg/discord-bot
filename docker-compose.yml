@@ -9,5 +9,6 @@ services:
       - .env
     volumes:
       - .:/app
-      - /Volumes:/Volumes:ro
+      - /srv:/data/disk-sdb1:ro
+      - /hdd/storage:/data/disk-sdc1:ro
     pid: "host"

@@ -11,13 +11,13 @@ class Monitor(commands.Cog):
 
     @app_commands.command(name="status", description="Xem thông số Homelab tại San Jose")
     async def status(self, interaction: discord.Interaction):
-        # Lấy thông số hệ thống
+        # Take system metrics using psutil
         cpu_usage = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         uname = platform.uname()
         
-        # Tạo giao diện Embed đẹp mắt
+        # Create an embed message to display the system status
         embed = discord.Embed(
             title="🖥️ Homelab System Status",
             color=discord.Color.blue(),
