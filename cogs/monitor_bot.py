@@ -7,7 +7,7 @@ import psutil
 import platform
 import datetime
 
-from cogs.utils.error_msg import Alert
+from cogs.utils.notification_msg import Alert
 from cogs.utils.get_bar import Bar
 
 ALERT_CHANNEL_ID = os.getenv("NOTIFICATION_CHANNEL_ID", 0)
@@ -96,7 +96,7 @@ class MonitorBot(commands.Cog):
         # 2. Check RAM usage
         ram = psutil.virtual_memory().percent
         ram_limit = self.config['system']['ram_threshold']
-        if ram.percent > ram_limit - 20:
+        if ram > ram_limit - 20:
             embed = Alert.warning_msg(
                 title="⚠️ **RAM Usage Warning**",
                 description=f"RAM usage is at {ram}%. Please monitor your system."
