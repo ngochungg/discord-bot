@@ -123,12 +123,12 @@ class MonitorBot(commands.Cog):
             if disk_usage.percent > threshold:
                 embed = Alert.error_msg(
                     title=f"💾 **High Disk Usage ({name})**",
-                    description=f"Disk usage for {name} is at {Bar.get_bar(disk_usage.percent)}. Please check your system."
+                    description=f"Disk usage for {name} is at {disk_usage.percent}%. Please check your system."
                 )
                 await channel.send(embed=embed)
 
             else:
-                checklists.append(f"✅ Disk usage for {name} is at {Bar.get_bar(disk_usage.percent)}.")
+                checklists.append(f"✅ Disk usage for {name} is at {disk_usage.percent}%.")
         
         # Send a summary message if there are alerts
         if len(checklists) > 0:
