@@ -11,4 +11,5 @@ services:
       - .:/app
       - /srv:/data/disk-sdb1:ro
       - /hdd/storage:/data/disk-sdc1:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     pid: "host"

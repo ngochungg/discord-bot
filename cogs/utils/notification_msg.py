@@ -1,6 +1,6 @@
 import discord
 
-class Alert:
+class NotificationMsg:
     def __init__(self, title: str, description: str):
         self.title = title
         self.description = description

@@ -7,7 +7,7 @@ import psutil
 import platform
 import datetime
 
-from cogs.utils.notification_msg import Alert
+from cogs.utils.notification_msg import NotificationMsg
 from cogs.utils.get_bar import Bar
 
 ALERT_CHANNEL_ID = os.getenv("NOTIFICATION_CHANNEL_ID", 0)
@@ -36,7 +36,7 @@ class MonitorBot(commands.Cog):
         disk_sdc = psutil.disk_usage('/data/disk-sdc1')
         
         # Create an embed message to display the system status
-        embed = Alert.info_msg(
+        embed = NotificationMsg.info_msg(
             title="🖥️ San Jose Node - System Status",
             description=f"Here are the current system metrics for the San Jose node:"
         )
@@ -77,14 +77,14 @@ class MonitorBot(commands.Cog):
         cpu_limit = self.config['system']['cpu_threshold']
 
         if cpu_usage > cpu_limit - 20:
-            embed = Alert.warning_msg(
+            embed = NotificationMsg.warning_msg(
                 title="⚠️ **CPU Usage Warning**",
                 description=f"CPU usage is at {cpu_usage}%. Please monitor your system."
             )
             await channel.send(embed=embed)
 
         elif cpu_usage > cpu_limit:
-            embed = Alert.error_msg(
+            embed = NotificationMsg.error_msg(
                 title="🔥 **High CPU Usage**",
                 description=f"CPU usage is at {cpu_usage}%. Please check your system."
             )
@@ -97,14 +97,14 @@ class MonitorBot(commands.Cog):
         ram = psutil.virtual_memory().percent
         ram_limit = self.config['system']['ram_threshold']
         if ram > ram_limit - 20:
-            embed = Alert.warning_msg(
+            embed = NotificationMsg.warning_msg(
                 title="⚠️ **RAM Usage Warning**",
                 description=f"RAM usage is at {ram}%. Please monitor your system."
             )
             await channel.send(embed=embed)
         
         elif ram > ram_limit:
-            embed = Alert.error_msg(
+            embed = NotificationMsg.error_msg(
                 title="🧠 **High RAM Usage**",
                 description=f"RAM usage is at {ram}%. Please check your system."
             )
@@ -121,7 +121,7 @@ class MonitorBot(commands.Cog):
             disk_usage = psutil.disk_usage(path=path)
 
             if disk_usage.percent > threshold:
-                embed = Alert.error_msg(
+                embed = NotificationMsg.error_msg(
                     title=f"💾 **High Disk Usage ({name})**",
                     description=f"Disk usage for {name} is at {disk_usage.percent}%. Please check your system."
                 )
@@ -134,7 +134,7 @@ class MonitorBot(commands.Cog):
         if len(checklists) > 0:
             summary = "\n".join(checklists)
 
-            embed = Alert.success_msg(
+            embed = NotificationMsg.success_msg(
                 title="🖥️ System Status Checklist",
                 description=summary
             )
