@@ -6,7 +6,7 @@ class Alert:
         self.description = description
 
     @staticmethod
-    def alert_msg(title: str, description: str) -> discord.Embed:
+    def error_msg(title: str, description: str) -> discord.Embed:
         # Tạo một Embed thực thụ
         embed = discord.Embed(
             title=f"🚨 {title}",
@@ -32,3 +32,13 @@ class Alert:
             color=discord.Color.green()
         )
         return embed
+    
+    @staticmethod
+    def info_msg(title: str, description: str) -> discord.Embed:
+        embed = discord.Embed(
+            title=f"{title}",
+            description=f"```\n{description}\n```",
+            color=discord.Color.blue()
+        )
+        return embed
+    

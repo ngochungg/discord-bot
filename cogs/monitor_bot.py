@@ -1,3 +1,4 @@
+import json
 import os
 import discord
 from discord import app_commands
@@ -6,7 +7,7 @@ import psutil
 import platform
 import datetime
 
-from cogs.utils.alert_msg import Alert
+from cogs.utils.error_msg import Alert
 from cogs.utils.get_bar import Bar
 
 ALERT_CHANNEL_ID = os.getenv("NOTIFICATION_CHANNEL_ID", 0)
@@ -14,10 +15,15 @@ ALERT_CHANNEL_ID = os.getenv("NOTIFICATION_CHANNEL_ID", 0)
 class MonitorBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.load_config()
         self.check_system_status.start()
 
     def cog_unload(self):
         self.check_system_status.cancel()
+
+    def load_config(self):
+        with open('config.json', 'r') as f:
+            self.config = json.load(f)
 
     @app_commands.command(name="status", description="Xem thông số Homelab tại San Jose")
     async def status(self, interaction: discord.Interaction):
@@ -30,10 +36,9 @@ class MonitorBot(commands.Cog):
         disk_sdc = psutil.disk_usage('/data/disk-sdc1')
         
         # Create an embed message to display the system status
-        embed = discord.Embed(
-            title="🖥️ Homelab System Status",
-            color=discord.Color.blue(),
-            timestamp=datetime.datetime.now()
+        embed = Alert.info_msg(
+            title="🖥️ San Jose Node - System Status",
+            description=f"Here are the current system metrics for the San Jose node:"
         )
 
         storage_info = (
@@ -53,13 +58,11 @@ class MonitorBot(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(hours=1)
     async def check_system_status(self):
 
         if not self.bot.is_ready():
             return
-        
-        checklists = []
         
         # Check if alert channel is available
         channel = self.bot.get_channel(int(ALERT_CHANNEL_ID))
@@ -67,45 +70,65 @@ class MonitorBot(commands.Cog):
             print(f"Alert channel with ID {ALERT_CHANNEL_ID} not found.")
             return
         
+        checklists = []
+        
         # 1. Check CPU usage
         cpu_usage = psutil.cpu_percent(interval=1)
-        if cpu_usage > 90:
-            embed = Alert.alert_msg(
-                title="High CPU Usage",
+        cpu_limit = self.config['system']['cpu_threshold']
+
+        if cpu_usage > cpu_limit - 20:
+            embed = Alert.warning_msg(
+                title="⚠️ **CPU Usage Warning**",
+                description=f"CPU usage is at {cpu_usage}%. Please monitor your system."
+            )
+            await channel.send(embed=embed)
+
+        elif cpu_usage > cpu_limit:
+            embed = Alert.error_msg(
+                title="🔥 **High CPU Usage**",
                 description=f"CPU usage is at {cpu_usage}%. Please check your system."
             )
             await channel.send(embed=embed)
+
         else:
             checklists.append(f"✅ CPU usage is at {cpu_usage}%.")
 
         # 2. Check RAM usage
-        ram = psutil.virtual_memory()
-        if ram.percent > 90:
-            embed = Alert.alert_msg(
-                title="High RAM Usage",
-                description=f"RAM usage is at {ram.percent}%. Please check your system."
+        ram = psutil.virtual_memory().percent
+        ram_limit = self.config['system']['ram_threshold']
+        if ram.percent > ram_limit - 20:
+            embed = Alert.warning_msg(
+                title="⚠️ **RAM Usage Warning**",
+                description=f"RAM usage is at {ram}%. Please monitor your system."
             )
             await channel.send(embed=embed)
+        
+        elif ram.percent > ram_limit:
+            embed = Alert.error_msg(
+                title="🧠 **High RAM Usage**",
+                description=f"RAM usage is at {ram}%. Please check your system."
+            )
+            await channel.send(embed=embed)
+
         else:
-            checklists.append(f"✅ RAM usage is at {ram.percent}%.")
+            checklists.append(f"✅ RAM usage is at {ram}%.")
         
         # 3. Check Disk usage
-        disks = {
-            "Root (/)": "/",
-            # "HDD 1TB": "/data/disk-sdb1",
-            # "HDD 3.6TB": "/data/disk-sdc1"
-        }
+        for disk in self.config["disks"]:
+            name = disk["name"]
+            path = disk["path"]
+            threshold = disk["threshold"]
+            disk_usage = psutil.disk_usage(path=path)
 
-        for disk_name, disk_path in disks.items():
-            disk_usage = psutil.disk_usage(disk_path)
-            if disk_usage.percent > 90:
-                embed = Alert.alert_msg(
-                    title=f"High Disk Usage ({disk_name})",
-                    description=f"Disk usage for {disk_name} is at {disk_usage.percent}%. Please check your system."
+            if disk_usage.percent > threshold:
+                embed = Alert.error_msg(
+                    title=f"💾 **High Disk Usage ({name})**",
+                    description=f"Disk usage for {name} is at {Bar.get_bar(disk_usage.percent)}. Please check your system."
                 )
                 await channel.send(embed=embed)
+
             else:
-                checklists.append(f"✅ Disk usage for {disk_name} is at {disk_usage.percent}%.")
+                checklists.append(f"✅ Disk usage for {name} is at {Bar.get_bar(disk_usage.percent)}.")
         
         # Send a summary message if there are alerts
         if len(checklists) > 0:
