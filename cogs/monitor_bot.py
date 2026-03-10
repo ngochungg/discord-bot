@@ -103,7 +103,7 @@ class MonitorBot(commands.Cog):
             )
             await channel.send(embed=embed)
         
-        elif ram.percent > ram_limit:
+        elif ram > ram_limit:
             embed = Alert.error_msg(
                 title="🧠 **High RAM Usage**",
                 description=f"RAM usage is at {ram}%. Please check your system."
