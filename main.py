@@ -47,7 +47,7 @@ class MyBot(commands.Bot):
         for guild in self.guilds:
             if guild.system_channel:
 
-                await guild.system_channel.send(f"✅ Bot {self.user} is online!")
+                # await guild.system_channel.send(f"✅ Bot {self.user} is online!")
                 print(f'📢 Sent notification to system channel of server: {guild.name}')
                 
 bot = MyBot()
