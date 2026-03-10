@@ -1,5 +1,3 @@
-from turtle import title
-
 import discord
 
 class Alert:
@@ -14,6 +12,15 @@ class Alert:
             title=f"🚨 {title}",
             description=f"```\n{description}\n```",
             color=discord.Color.red()
+        )
+        return embed
+    
+    @staticmethod
+    def warning_msg(title: str, description: str) -> discord.Embed:
+        embed = discord.Embed(
+            title=f"⚠️ {title}",
+            description=f"```\n{description}\n```",
+            color=discord.Color.orange()
         )
         return embed
     
