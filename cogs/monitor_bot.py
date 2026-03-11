@@ -38,7 +38,6 @@ class MonitorBot(commands.Cog):
         # Create an embed message to display the system status
         embed = NotificationMsg.info_msg(
             title="🖥️ San Jose Node - System Status",
-            description=f"Here are the current system metrics for the San Jose node:"
         )
 
         storage_info = (
