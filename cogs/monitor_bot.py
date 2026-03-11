@@ -32,8 +32,8 @@ class MonitorBot(commands.Cog):
         ram = psutil.virtual_memory()
         uname = platform.uname()
         disk = psutil.disk_usage('/')
-        # disk_sdb = psutil.disk_usage('/data/disk-sdb1')
-        # disk_sdc = psutil.disk_usage('/data/disk-sdc1')
+        disk_sdb = psutil.disk_usage('/data/disk-sdb1')
+        disk_sdc = psutil.disk_usage('/data/disk-sdc1')
         
         # Create an embed message to display the system status
         embed = NotificationMsg.info_msg(
@@ -44,8 +44,8 @@ class MonitorBot(commands.Cog):
         storage_info = (
             f"```\n"
             f"Root (/)  : {str(disk.percent).rjust(5)}% | {Bar.get_bar(disk.percent)}\n"
-            # f"HDD 1TB   : {str(disk_sdb.percent).rjust(5)}% | {Bar.get_bar(disk_sdb.percent)}\n"
-            # f"HDD 3.6TB : {str(disk_sdc.percent).rjust(5)}% | {Bar.get_bar(disk_sdc.percent)}\n"
+            f"HDD 1TB   : {str(disk_sdb.percent).rjust(5)}% | {Bar.get_bar(disk_sdb.percent)}\n"
+            f"HDD 3.6TB : {str(disk_sdc.percent).rjust(5)}% | {Bar.get_bar(disk_sdc.percent)}\n"
             f"```"
         )
         
