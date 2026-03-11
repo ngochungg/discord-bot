@@ -25,7 +25,7 @@ class MonitorBot(commands.Cog):
         with open('config.json', 'r') as f:
             self.config = json.load(f)
 
-    @app_commands.command(name="status", description="Xem thông số Homelab tại San Jose")
+    @app_commands.command(name="status", description="Check Homelab stats at San Jose")
     async def status(self, interaction: discord.Interaction):
         # Take system metrics using psutil
         cpu_usage = psutil.cpu_percent(interval=1)
