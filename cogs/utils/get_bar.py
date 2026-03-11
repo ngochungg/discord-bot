@@ -1,5 +1,3 @@
-
-
 class Bar:
     def __init__(self, percent: float, length: int = 20):
         self.percent = percent
