@@ -10,7 +10,7 @@ import datetime
 from cogs.utils.notification_msg import NotificationMsg
 from cogs.utils.get_bar import Bar
 
-ALERT_CHANNEL_ID = os.getenv("NOTIFICATION_CHANNEL_ID", 0)
+ALERT_CHANNEL_ID = int(os.getenv("NOTIFICATION_CHANNEL_ID", 0))
 
 class MonitorBot(commands.Cog):
     def __init__(self, bot):
@@ -31,22 +31,29 @@ class MonitorBot(commands.Cog):
         cpu_usage = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
         uname = platform.uname()
-        disk = psutil.disk_usage('/')
-        disk_sdb = psutil.disk_usage('/data/disk-sdb1')
-        disk_sdc = psutil.disk_usage('/data/disk-sdc1')
         
         # Create an embed message to display the system status
         embed = NotificationMsg.info_msg(
             title="🖥️ San Jose Node - System Status",
+            description=""
         )
 
-        storage_info = (
-            f"```\n"
-            f"Root (/)  : {str(disk.percent).rjust(5)}% | {Bar.get_bar(disk.percent)}\n"
-            f"HDD 1TB   : {str(disk_sdb.percent).rjust(5)}% | {Bar.get_bar(disk_sdb.percent)}\n"
-            f"HDD 3.6TB : {str(disk_sdc.percent).rjust(5)}% | {Bar.get_bar(disk_sdc.percent)}\n"
-            f"```"
-        )
+        storage_info = []
+        for disk_config in self.config["disks"]:
+            try:
+                # Take information
+                usage = psutil.disk_usage(disk_config['path'])
+                percent = usage.percent
+                name = disk_config['name']
+                
+                # Display
+                line = f"{name.ljust(10)}: {str(percent).rjust(5)}% | {Bar.get_bar(percent)}"
+                storage_info.append(line)
+            
+            except Exception:
+                storage_info.append(f"{disk_config['name'].ljust(10)}: Error reading disk")
+            
+        storage_info = "```\n" + "\n".join(storage_info) + "\n```"
         
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
         embed.add_field(name="🔥 CPU Usage", value=f"{cpu_usage}%\n{Bar.get_bar(cpu_usage)}", inline=True)
@@ -64,7 +71,7 @@ class MonitorBot(commands.Cog):
             return
         
         # Check if alert channel is available
-        channel = self.bot.get_channel(int(ALERT_CHANNEL_ID))
+        channel = self.bot.get_channel(ALERT_CHANNEL_ID)
         if not channel:
             print(f"Alert channel with ID {ALERT_CHANNEL_ID} not found.")
             return
