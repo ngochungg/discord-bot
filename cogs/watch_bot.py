@@ -10,15 +10,21 @@ from cogs.utils.notification_msg import NotificationMsg
 
 CONFIG_PATH = "monitored_services.json"
 ALERT_CHANNEL_ID = int(os.getenv("NOTIFICATION_CHANNEL_ID", 0))
+ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
 
 class WatchBot(commands.Cog):
     def __init__(self, bot):
-      self.bot = bot
-      self.client = docker.from_env()
-      self.monitored_containers = self.load_monitored_services()
-      if self.monitored_containers is None:
-          self.monitored_containers = set()
-      self.auto_heal.start()
+        self.bot = bot
+        try:
+            self.client = docker.from_env()
+        except Exception as e:
+            print(f"Docker connection error: {e}")
+            self.client = None
+
+        self.monitored_containers = self.load_monitored_services()
+        if self.monitored_containers is None:
+            self.monitored_containers = set()
+        self.auto_heal.start()
     
     def load_monitored_services(self):
         if os.path.exists(CONFIG_PATH):
@@ -31,10 +37,11 @@ class WatchBot(commands.Cog):
                 print(f"Warning: Config file corrupted or empty. Resetting... Error: {e}")
                     
     def save_monitor_services(self):
+        """Save the current set to JSON"""
         with open(CONFIG_PATH, "w") as f:
             json.dump(list(self.monitored_containers), f)
             
-    async def callback_func(self, container_name):
+    async def callback_func(self, container_name, action):
         
         # Ensure it;s a sete before operating
         if self.monitored_containers is None:
@@ -43,19 +50,24 @@ class WatchBot(commands.Cog):
         # This function is passed to the View to andle data
         if container_name in self.monitored_containers:
             self.monitored_containers.remove(container_name)
-            action = "Disabled"
+            status = "Disabled"
             
         else:
             self.monitored_containers.add(container_name)
-            action = "Enabled"
+            status = "Enabled"
             
         self.save_monitor_services()
-        return action
+        
+        embed = NotificationMsg.success_msg(
+            title="Monitoring Updated",
+            description=f"Auto-heal for `{container_name}` is now **{status}**."
+        )
+        return True, embed
     
     def cog_unload(self):
         self.auto_heal.cancel()
         
-    @tasks.loop(seconds=15)
+    @tasks.loop(seconds=60)
     async def auto_heal(self):
         if not self.monitored_containers:
             return
@@ -99,17 +111,32 @@ class WatchBot(commands.Cog):
                 
     @app_commands.command(name="tracking", description="Manage Docker auto-healing services")
     async def tracking(self, interaction: discord.Interaction):
-        # Check admin here
+        # 1. Admin Check
+        if interaction.user.id != ADMIN_ID:
+            embed = NotificationMsg.error_msg(
+                title="Permission Denied",
+                description="You don't have permission to manage Docker containers."
+            )
+            
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
         
         # List container
         containers = self.client.containers.list(all=True)
+        
+        action_map = {
+            "Toggle": (self.callback_func, None)
+        }
+        
         view = DropdownBar(
             containers,
             self.client,
             self.monitored_containers,
-            self.callback_func
+            action_map,
+            mode="tracking"
         )
         await interaction.response.send_message("🛡️ **Service Monitoring Dashboard**", view=view, ephemeral=True)
         
+        view.message = await interaction.original_response()
+
 async def setup(bot):
     await bot.add_cog(WatchBot(bot))
