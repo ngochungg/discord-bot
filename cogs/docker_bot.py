@@ -1,7 +1,7 @@
 import os
 import discord
 import docker
-import asyncio
+import re
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
 
+from cogs.utils.docker_utils import DockerUtils
 from cogs.utils.dropdown_bar import DropdownBar
 from cogs.utils.notification_msg import NotificationMsg
 
@@ -54,6 +55,11 @@ class DockerBot(commands.Cog):
         except Exception as e:
             return False, NotificationMsg.error_msg(title="System Error", description=str(e))
 
+    async def handle_docker_logs(self, container_name, action):
+        
+        success, embed = await DockerUtils.get_container_logs(self.client, container_name)
+        return success, embed
+
     @app_commands.command(name="docker", description="Manage Docker containers on the San Jose node")
     async def docker_manage(self, interaction: discord.Interaction):
         # 1. Admin Check
@@ -78,7 +84,8 @@ class DockerBot(commands.Cog):
         # Format: "Label": (callback_function, button_style)
         action_map = {
             "Restart": (self.handle_docker_action, discord.ButtonStyle.primary),
-            "Stop": (self.handle_docker_action, discord.ButtonStyle.danger)
+            "Stop": (self.handle_docker_action, discord.ButtonStyle.danger),
+            "Logs": (self.handle_docker_logs, discord.ButtonStyle.secondary)
         }
         
         # 5. Initialize Universal View

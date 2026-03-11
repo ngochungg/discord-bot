@@ -1,10 +1,13 @@
 import os
 import json
+import time
 import docker
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
+from cogs.docker_bot import DockerBot
+from cogs.utils.docker_utils import QuickLogView
 from cogs.utils.dropdown_bar import DropdownBar
 from cogs.utils.notification_msg import NotificationMsg
 
@@ -24,6 +27,10 @@ class WatchBot(commands.Cog):
         self.monitored_containers = self.load_monitored_services()
         if self.monitored_containers is None:
             self.monitored_containers = set()
+            
+        self.restart_history = {}
+        self.cool_down_locks = {}
+
         self.auto_heal.start()
     
     def load_monitored_services(self):
@@ -41,6 +48,17 @@ class WatchBot(commands.Cog):
         with open(CONFIG_PATH, "w") as f:
             json.dump(list(self.monitored_containers), f)
             
+    def is_in_crash_loop(self, name):
+        # Check if container restart over 3 times in 10 mins
+        now = time.time()
+        if name not in self.restart_history:
+            self.restart_history[name] = []
+            
+        # Timestamp in 10mins (600s)
+        self.restart_history[name] = [t for t in self.restart_history[name] if now - t < 600]
+        
+        return len(self.restart_history[name]) >= 3
+    
     async def callback_func(self, container_name, action):
         
         # Ensure it;s a sete before operating
@@ -67,47 +85,73 @@ class WatchBot(commands.Cog):
     def cog_unload(self):
         self.auto_heal.cancel()
         
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=30)
     async def auto_heal(self):
-        if not self.monitored_containers:
-            return
-        
-        channel = self.bot.get_channel(ALERT_CHANNEL_ID)
-        
-        for name in list(self.monitored_containers):
-            try:
-                container = self.client.containers.get(name)
+        try:
+            if not self.monitored_containers or not self.client:
+                return
+            
+            channel = self.bot.get_channel(ALERT_CHANNEL_ID)
+            now = time.time()
+            
+            for name in list(self.monitored_containers):
                 
-                # Check if container is not in the desired 'running'
-                if container.status != "running":
+                # Check if services is lock by crash-loop
+                if name in self.cool_down_locks and now < self.cool_down_locks[name]:
+                    continue
                     
-                    # Perform the restart first
-                    container.restart()
+                try:
+                    container = self.client.containers.get(name)
                     
-                    # Sync the local obj with Docker
-                    container.reload()
-                    
-                    if channel:
-                        embed = NotificationMsg.success_msg(
-                            title=" Auto-Heal Executed",
-                            description=f"Service `{name}` was down. It has been successfully restarted."
-                        )
-                    
-                    else:
-                        embed = NotificationMsg.error_msg(
-                            title="🚨 Auto-Heal Failed",
-                            description=f"Service `{name}` failed to recover. Current status: **{container.status}**."
-                        )
+                    # Check if container is not in the desired 'running'
+                    if container.status != "running":
+                        
+                        if self.is_in_crash_loop(name):
+                            self.cool_down_locks[name] = now + 3600 # Lock auto-heal in 1 hour
+                            if channel:
+                                embed = NotificationMsg.error_msg(
+                                    title="CRITICAL: Crash-loop Detected",
+                                    description=f"Service `{name}` restarted many times. \n**Auto-heal is stopped 1 hour** to protect server."
+                                )
+                                
+                                # Send with View, Logs button
+                                view = QuickLogView(name, self.client)
+                                await channel.send(embed=embed, view=view)
+                            continue
+                        
+                        # Perform the restart first
+                        container.restart()
+                        
+                        if name not in self.restart_history:
+                            self.restart_history[name] = []
+                        self.restart_history[name].append(now)
+                        
+                        # Sync the local obj with Docker
+                        container.reload()
+                        
+                        if channel:
+                            embed = NotificationMsg.success_msg(
+                                title=" Auto-Heal Executed",
+                                description=f"Service `{name}` was down. It has been successfully restarted."
+                            )
+                        
+                        else:
+                            embed = NotificationMsg.error_msg(
+                                title="🚨 Auto-Heal Failed",
+                                description=f"Service `{name}` failed to recover. Current status: **{container.status}**."
+                            )
 
-                    await channel.send(embed=embed)          
+                        await channel.send(embed=embed)          
 
-            except docker.errors.NotFound:
-                self.monitored_containers.remove(name)
-                self.save_monitor_services()
-                print(f"Removed {name} from tracking: Container not found.")
-                    
-            except Exception as e:
-                print(f"Monitor error for {name}: {e}")
+                except docker.errors.NotFound:
+                    self.monitored_containers.remove(name)
+                    self.save_monitor_services()
+                    print(f"Removed {name} from tracking: Container not found.")
+                        
+                except Exception as e:
+                    print(f"Monitor error for {name}: {e}")
+        except Exception as e:
+            print(f"❌ Auto-heal Task Error: {e}")
                 
     @app_commands.command(name="tracking", description="Manage Docker auto-healing services")
     async def tracking(self, interaction: discord.Interaction):

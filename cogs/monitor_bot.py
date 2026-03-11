@@ -47,7 +47,7 @@ class MonitorBot(commands.Cog):
                 name = disk_config['name']
                 
                 # Display
-                line = f"{name.ljust(10)}: {str(percent).rjust(5)}% | {Bar.get_bar(percent)}"
+                line = f"{name.ljust(10)}: {str(percent).rjust(5)}% | [{Bar.get_bar(percent)}]"
                 storage_info.append(line)
             
             except Exception:
@@ -57,7 +57,7 @@ class MonitorBot(commands.Cog):
         
         embed.add_field(name="🌐 OS", value=f"{uname.system} {uname.release}", inline=False)
         embed.add_field(name="🔥 CPU Usage", value=f"{cpu_usage}%\n{Bar.get_bar(cpu_usage)}", inline=True)
-        embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)\n{Bar.get_bar(ram.percent)}", inline=True)
+        embed.add_field(name="🧠 RAM", value=f"{ram.percent}% ({ram.used//1048576}MB / {ram.total//1048576}MB)\n[{Bar.get_bar(ram.percent)}]", inline=True)
         embed.add_field(name="💾 Storage Status", value=storage_info, inline=False)
         
         embed.set_footer(text=f"Requested by {interaction.user.name}")

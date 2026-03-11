@@ -11,7 +11,7 @@ class DropdownBar(discord.ui.View):
         :param active_items: A set/list of items currently marked as 'Active' or 'Monitored'
         :param toggle_callback: The function to execute when the toggle button is clicked
         """
-        super().__init__(timeout=10.0)
+        super().__init__(timeout=60.0)
         self.message = None
         self.items = items
         self.data_client = client
@@ -20,13 +20,13 @@ class DropdownBar(discord.ui.View):
         self.action_map = action_map
         self.mode = mode
         
-        # Initialize specialized Select Menu
-        self.add_item(GenericSelect(self.items, self.active_items, self.action_map, self.mode))
-        
         # Add Exit button
         exit_btn = discord.ui.Button(label="Exit", style=discord.ButtonStyle.secondary, row=1)
         exit_btn.callback = self.exit_callback
         self.add_item(exit_btn)
+        
+        # Initialize specialized Select Menu
+        self.add_item(GenericSelect(self.items, self.active_items, self.action_map, self.mode))
         
     def refresh_ui(self):
         """Update buttons and dropdown based on current state"""
