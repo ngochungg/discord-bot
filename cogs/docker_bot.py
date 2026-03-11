@@ -1,7 +1,13 @@
+import os
 import discord
+import docker
+import asyncio
 from discord import app_commands
 from discord.ext import commands
-import docker
+from dotenv import load_dotenv
+
+load_dotenv()
+ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
 
 from cogs.utils.notification_msg import NotificationMsg
 
@@ -17,13 +23,25 @@ class DockerBot(commands.Cog):
 
     @app_commands.command(name="docker", description="Manage Docker containers on the San Jose node")
     async def docker_manage(self, interaction: discord.Interaction):
+        
+        # Check admin user
+        if interaction.user.id != ADMIN_ID:
+            embed = NotificationMsg.error_msg(
+                title = "You cannot use this command !!!",
+                description = "You don't have permission to use this command."
+            )
+            await interaction.response.send_message(
+                embed = embed,
+                ephemeral=True
+            )
+            return
 
         # Take a list of all containers and their statuses using the Docker SDK for Python
         containers = self.client.containers.list(all=True)
 
         if not containers:
             msg = NotificationMsg.error_msg(
-                title="❌ No Containers Found",
+                title="No Containers Found",
                 description="There are no Docker containers available to manage on the San Jose node."
             )
             await interaction.response.send_message(embed=msg, ephemeral=True)
@@ -31,7 +49,7 @@ class DockerBot(commands.Cog):
         
         # Create a view with a select menu to choose a container and buttons to manage it
         view = DockerManagerView(containers, self.client)
-        await interaction.response.send_message("Select a container to manage:", view=view, ephemeral=True)
+        await interaction.response.send_message(None, view=view, ephemeral=True)
 
 class DockerSelect(discord.ui.Select):
     def __init__(self, containers):
@@ -55,12 +73,11 @@ class DockerSelect(discord.ui.Select):
 
         # Update the select menu options to show which container is currently selected
         for option in self.options:
-            if option.label == selected_value:
-                option.default = True
-            else:
-                option.default = False
+            option.default = (option.label == selected_value)
 
-        if len(self.view.children) == 2:
+        has_controls = any(isinstance(item, discord.ui.Button) and item.label != "Exit" for item in self.view.children)
+
+        if selected_value and not has_controls:
             # Restart button to restart the selected container
             restart_btn = discord.ui.Button(
                 label="Restart", 
@@ -82,8 +99,15 @@ class DockerSelect(discord.ui.Select):
             # Add the stop button to the view
             self.view.add_item(stop_btn)
 
+        elif not selected_value and has_controls:
+            # Delete buttons
+            items_to_remove = [item for item in self.view.children
+                              if isinstance(item, discord.ui.Button) and item.label != "Exit"]
+            
+            for item in items_to_remove:
+                self.view.remove_item(item)
+
         await interaction.response.edit_message(
-            content=f"Selected container: **{self.values[0]}**. Use the buttons below to manage it.",
             view=self.view
         )
 
@@ -106,11 +130,15 @@ class DockerManagerView(discord.ui.View):
         self.add_item(exit_btn)
 
     async def _handle_container_action(self, interaction: discord.Interaction, action: str):
-        await interaction.response.defer(ephemeral=True)
+        # Disable buttons
+        for item in self.children:
+            item.disabled = True
+        
+        # Update UI again
+        await interaction.response.edit_message(view=self)
 
         try:
             container = self.docker_client.containers.get(self.selected_container)
-
             if action == "restart":
                 container.restart()
                 action_verb = "restarted"
@@ -120,11 +148,33 @@ class DockerManagerView(discord.ui.View):
             else:
                 raise ValueError("Invalid action")
             
+            final_msg = NotificationMsg.success_msg(
+                title=f"Container {action.capitalize()}ed",
+                description=f"Successfully **{action_verb}** on `{self.selected_container}`. List updated."
+            )
+
+
+            await interaction.edit_original_response(
+                embed=final_msg, 
+                view=self 
+            )
+
+            await asyncio.sleep(1)
+
+            # Cleaup and enable
+            # Delete buttons except Exit
+            for item in list(self.children):
+                if isinstance(item, discord.ui.Button) and item.label != "Exit":
+                    self.remove_item(item)
+    
+                # Enable Exit button to exit after
+                else:
+                    item.disabled = False
+            
             # After performing the action, refresh the container list and update the select menu options to reflect any changes in container statuses
             new_containers = self.docker_client.containers.list(all=True)
-
             for item in self.children:
-                if isinstance(item, DockerSelect):
+                if isinstance(item, discord.ui.Select):
                     item.options = [
                         discord.SelectOption(
                             label=c.name,
@@ -134,33 +184,42 @@ class DockerManagerView(discord.ui.View):
                         ) for c in new_containers
                     ]
 
-            selected_name = self.selected_container
             self.selected_container = None
 
-            msg = NotificationMsg.success_msg(
-                title=f"✅ Container {action.capitalize()}ed",
-                description=f"Successfully performed **{action}** on `{selected_name}`. List updated."
-            )
-            
+            # Last update
             await interaction.edit_original_response(
-                content="Select a container to manage:",
-                embed=msg, 
-                view=self 
+                content=None,
+                embed=final_msg,
+                view=self
             )
 
         except docker.errors.NotFound:
-            msg = NotificationMsg.error_msg(
-                title="🚨 Container Not Found",
+            error_embed = NotificationMsg.error_msg(
+                title="Container Not Found",
                 description=f"Container '{self.selected_container}' does not exist."
             )
-            await interaction.response.followup.send(embed=msg, ephemeral=True)
+            await interaction.edit_original_response(
+                content=None,
+                embed=error_embed,
+                view=self
+            )
+
 
         except Exception as e:
-            msg = NotificationMsg.error_msg(
-                title=f"🚨 Error {action.capitalize()}ing Container",
+            #If error, open buttons again for user
+            for item in self.children:
+                if isinstance(item, discord.ui.Button):
+                    item.disabled = False
+            
+            error_embed = NotificationMsg.error_msg(
+                title=f"Error {action.capitalize()}ing Container",
                 description=f"An error occurred while trying to {action} container '{self.selected_container}': {e}"
             )
-            await interaction.response.followup.send(embed=msg, ephemeral=True)
+            await interaction.edit_original_response(
+                content=None,
+                embed=error_embed,
+                view=self
+            )
 
     # Callbacks for the restart and stop buttons that call the _handle_container_action method with the appropriate action
     async def restart_callback(self, interaction: discord.Interaction):
@@ -181,51 +240,7 @@ class DockerManagerView(discord.ui.View):
             content=None,
             embed=msg,
             view=None
-        )
-
-    # async def restart_callback(self, interaction: discord.Interaction):
-    #     await interaction.response.defer(ephemeral=True)
-
-    #     # Try to restart the specified container and send an appropriate message based on the outcome
-    #     try:
-    #         # Get the container object using the Docker SDK for Python and restart it
-    #         container = self.docker_client.containers.get(self.selected_container)
-    #         container.restart()
-
-    #         for item in self.children:
-    #             if isinstance(item, discord.ui.Select):
-    #                 for option in item.options:
-    #                     option.default = False
-
-    #         self.selected_container = None
-
-    #         # Send a success message if the container was restarted successfully
-    #         msg = NotificationMsg.success_msg(
-    #             title = "✅ Container Restarted",
-    #             description = f"Task complete! The menu has been reset."
-    #         )
-    #         await interaction.edit_original_response(
-    #             content="Select a container to manage:",
-    #             embed=msg, 
-    #             view=self 
-    #         )
-
-    #     except docker.errors.NotFound:
-    #         msg = NotificationMsg.error_msg(
-    #             title = "🚨 Container Not Found",
-    #             description = f"Container '{self.selected_container}' does not exist."
-    #         )
-    #         await interaction.response.followup.send(embed=msg, ephemeral=True)
-
-    #     except Exception as e:
-    #         msg = NotificationMsg.error_msg(
-    #             title = "🚨 Error Restarting Container",
-    #             description = f"An error occurred while restarting container '{self.selected_container}': {e}",
-    #             view = self
-    #         )
-    #         await interaction.response.followup.send(embed=e, ephemeral=True)
-
-        
+        )    
 
 async def setup(bot):
     await bot.add_cog(DockerBot(bot))
