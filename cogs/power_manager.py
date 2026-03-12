@@ -56,7 +56,7 @@ class PowerManager(commands.Cog):
                 title="WOL Sent",
                 description=f"Sent WOL signal to {self.mac}. Homelab should be booting..."
             )
-            await interaction.response.followup(embed=embed)
+            await interaction.followup.send(embed=embed)
             
         except Exception as e:
             await interaction.followup.send(content=f"Error: {e}")
