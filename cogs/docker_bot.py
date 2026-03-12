@@ -1,7 +1,6 @@
 import os
 import discord
 import docker
-import re
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -16,11 +15,15 @@ from cogs.utils.notification_msg import NotificationMsg
 class DockerBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.admin_id = int(os.getenv('ADMIN_ID', 0))
+        self.lab_ip = os.getenv("LAB_IP")
+        self.ssh_user = os.getenv("SSH_USER")
+        
         try:
-            self.client = docker.from_env()
-            
+            ssh_url = f"ssh://{self.ssh_user}@{self.lab_ip}"
+            self.client = docker.DockerClient(base_url=ssh_url, use_ssh_client=True)
         except Exception as e:
-            print(f"Error initializing Docker client: {e}")
+            print(f"❌ Cannot connect Docker Remote: {e}")
             self.client = None
 
     async def handle_docker_action(self, container_name, action_type):
