@@ -13,10 +13,10 @@ class PowerManager(commands.Cog):
       self.mac = os.getenv("LAB_MAC")
       self.channel_id = int(os.getenv("NOTIFICATION_CHANNEL_ID"), 0)
       self.is_online = True
-      self.health_check.start()
+    #   self.health_check.start()
       
-    def cog_unload(self):
-        self.health_check.cancel()
+    # def cog_unload(self):
+    #     self.health_check.cancel()
         
     def ping_host(self):
         # -c 1 for one packet, -W 1 for 1 second timeout
@@ -27,35 +27,39 @@ class PowerManager(commands.Cog):
         except Exception:
             return False
         
-    @tasks.loop(seconds=60)
-    async def health_check(self):
-        currently_online = self.ping_host()
+    # @tasks.loop(seconds=60)
+    # async def health_check(self):
+    #     currently_online = self.ping_host()
         
-        if self.is_online and not currently_online:
-            channel = self.bot.get_channel(self.channel_id)
-            embed = NotificationMsg.error_msg(
-                title="🚨 Critical Alert", 
-                description=f"Homelab ({self.lab_ip}) is OFFLINE!"
-            )
-            await channel.send(embed=embed)
-            for guild in self.guilds:
-                if guild.system_channel:
+    #     if self.is_online and not currently_online:
+    #         channel = self.bot.get_channel(self.channel_id)
+    #         embed = NotificationMsg.error_msg(
+    #             title="🚨 Critical Alert", 
+    #             description=f"Homelab ({self.lab_ip}) is OFFLINE!"
+    #         )
+    #         await channel.send(embed=embed)
+    #         for guild in self.guilds:
+    #             if guild.system_channel:
 
-                    await guild.system_channel.send(embed)
+    #                 await guild.system_channel.send(embed)
             
-        self.is_online = currently_online
+    #     self.is_online = currently_online
         
     @app_commands.command(name="wake_up", description="Wake up homelab on the San Jose node")
     async def wake_up(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         
-        send_magic_packet(self.mac, ip_address=self.lab_ip, port=9)
+        try :
+            send_magic_packet(self.mac, ip_address=self.lab_ip, port=9)
 
-        embed = NotificationMsg.success_msg(
-            title="WOL Sent",
-            description=f"Sent WOL signal to {self.mac}. Homelab should be booting..."
-        )
-        await interaction.response.followup(embed=embed)
+            embed = NotificationMsg.success_msg(
+                title="WOL Sent",
+                description=f"Sent WOL signal to {self.mac}. Homelab should be booting..."
+            )
+            await interaction.response.followup(embed=embed)
+            
+        except Exception as e:
+            await interaction.followup.send(content=f"Error: {e}")
 
 async def setup(bot):
     await bot.add_cog(PowerManager(bot))
