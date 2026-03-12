@@ -38,6 +38,10 @@ class PowerManager(commands.Cog):
                 description=f"Homelab ({self.lab_ip}) is OFFLINE!"
             )
             await channel.send(embed=embed)
+            for guild in self.guilds:
+                if guild.system_channel:
+
+                    await guild.system_channel.send(embed)
             
         self.is_online = currently_online
         
