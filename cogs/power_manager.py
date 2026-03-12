@@ -47,13 +47,15 @@ class PowerManager(commands.Cog):
         
     @app_commands.command(name="wake_up", description="Wake up homelab on the San Jose node")
     async def wake_up(self, interaction: discord.Interaction):
-        send_magic_packet(self.mac, self.lab_ip)
-        
+        send_magic_packet(self.mac, ip_address=self.lab_ip, port=9)
+
+	await interaction.response.defer(ephemeral=True)
+
         embed = NotificationMsg.success_msg(
             title="WOL Sent",
             description=f"Sent WOL signal to {self.mac}. Homelab should be booting..."
         )
-        await interaction.response.send_message(embed=embed)
-    
+        await interaction.response.followup(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(PowerManager(bot))
