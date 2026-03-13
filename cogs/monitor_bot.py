@@ -76,8 +76,6 @@ class MonitorBot(commands.Cog):
             print(f"Alert channel with ID {ALERT_CHANNEL_ID} not found.")
             return
         
-        checklists = []
-        
         # 1. Check CPU usage
         cpu_usage = psutil.cpu_percent(interval=1)
         cpu_limit = self.config['system']['cpu_threshold']
@@ -96,9 +94,6 @@ class MonitorBot(commands.Cog):
             )
             await channel.send(embed=embed)
 
-        else:
-            checklists.append(f"✅ CPU usage is at {cpu_usage}%.")
-
         # 2. Check RAM usage
         ram = psutil.virtual_memory().percent
         ram_limit = self.config['system']['ram_threshold']
@@ -115,9 +110,6 @@ class MonitorBot(commands.Cog):
                 description=f"RAM usage is at {ram}%. Please check your system."
             )
             await channel.send(embed=embed)
-
-        else:
-            checklists.append(f"✅ RAM usage is at {ram}%.")
         
         # 3. Check Disk usage
         for disk in self.config["disks"]:
@@ -132,22 +124,6 @@ class MonitorBot(commands.Cog):
                     description=f"Disk usage for {name} is at {disk_usage.percent}%. Please check your system."
                 )
                 await channel.send(embed=embed)
-
-            else:
-                checklists.append(f"✅ Disk usage for {name} is at {disk_usage.percent}%.")
-        
-        # Send a summary message if there are alerts
-        if len(checklists) > 0:
-            summary = "\n".join(checklists)
-
-            embed = NotificationMsg.success_msg(
-                title="🖥️ System Status Checklist",
-                description=summary
-            )
-            embed.timestamp = datetime.datetime.now()
-            embed.set_footer(text="San Jose Node - Automatic Monitor")
-
-            await channel.send(embed=embed)
 
     @check_system_status.before_loop
     async def before_check_system_status(self):
