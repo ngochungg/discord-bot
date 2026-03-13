@@ -14,13 +14,15 @@ from cogs.utils.notification_msg import NotificationMsg
 CONFIG_PATH = "monitored_services.json"
 ALERT_CHANNEL_ID = int(os.getenv("NOTIFICATION_CHANNEL_ID", 0))
 ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
+LAB_IP = os.getenv("LAB_IP")
+SSH_USER = os.getenv("SSH_USER")
 
 class WatchBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.client = None
-        self.lab_ip = os.getenv("LAB_IP")
-        self.ssh_user = os.getenv("SSH_USER")
+        self.lab_ip = LAB_IP
+        self.ssh_user = SSH_USER
 
         self.monitored_containers = self.load_monitored_services()
         if self.monitored_containers is None:
