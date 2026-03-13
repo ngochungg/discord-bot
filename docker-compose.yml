@@ -6,14 +6,11 @@ services:
     network_mode: host
     environment:
       - PYTHONUNBUFFERED=1
-      - SSH_USER=${SSH_USER}
-      - LAB_IP=${LAB_IP}
     env_file:
       - .env
     volumes:
       - .:/app
-      - /home/cybercat/.ssh:/mnt/.ssh:ro
-      # - /srv:/data/disk-sdb1:ro
-      # - /hdd/storage:/data/disk-sdc1:ro
+      - /srv:/data/disk-sdb1:ro
+      - /hdd/storage:/data/disk-sdc1:ro
       - /var/run/docker.sock:/var/run/docker.sock
     pid: "host"
