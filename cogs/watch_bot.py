@@ -18,11 +18,9 @@ ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
 class WatchBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        try:
-            self.client = docker.from_env()
-        except Exception as e:
-            print(f"Docker connection error: {e}")
-            self.client = None
+        self.client = None
+        self.lab_ip = os.getenv("LAB_IP")
+        self.ssh_user = os.getenv("SSH_USER")
 
         self.monitored_containers = self.load_monitored_services()
         if self.monitored_containers is None:
@@ -152,6 +150,20 @@ class WatchBot(commands.Cog):
                     print(f"Monitor error for {name}: {e}")
         except Exception as e:
             print(f"❌ Auto-heal Task Error: {e}")
+
+    def connect_to_docker(self):
+        try:
+            ssh_url = f"ssh://{self.ssh_user}@{self.lab_ip}"
+            client = docker.DockerClient(base_url=ssh_url, use_ssh_client=True,timeout=10)
+
+            client.ping()
+            self.client = client
+            return True
+
+        except Exception as e:
+            print(f"❌ Cannot connect Docker Remote: {e}")
+            self.client = None
+            return False
                 
     @app_commands.command(name="tracking", description="Manage Docker auto-healing services")
     async def tracking(self, interaction: discord.Interaction):
@@ -164,6 +176,12 @@ class WatchBot(commands.Cog):
             
             return await interaction.response.send_message(embed=embed, ephemeral=True)
         
+        await interaction.response.defer(ephemeral=True)
+
+        if not self.client:
+            if not self.connect_to_docker():
+                return await interaction.followup.send("❌ Cannot connect to Docker Engine.", ephemeral=True)
+
         # List container
         containers = self.client.containers.list(all=True)
         
@@ -178,7 +196,7 @@ class WatchBot(commands.Cog):
             action_map,
             mode="tracking"
         )
-        await interaction.response.send_message("🛡️ **Service Monitoring Dashboard**", view=view, ephemeral=True)
+        await interaction.followup.send("🛡️ **Service Monitoring Dashboard**", view=view, ephemeral=True)
         
         view.message = await interaction.original_response()
 

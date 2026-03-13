@@ -18,13 +18,21 @@ class DockerBot(commands.Cog):
         self.admin_id = int(os.getenv('ADMIN_ID', 0))
         self.lab_ip = os.getenv("LAB_IP")
         self.ssh_user = os.getenv("SSH_USER")
-        
+        self.client = None
+
+    def connect_to_docker(self):
         try:
             ssh_url = f"ssh://{self.ssh_user}@{self.lab_ip}"
-            self.client = docker.DockerClient(base_url=ssh_url, use_ssh_client=True)
+            client = docker.DockerClient(base_url=ssh_url, use_ssh_client=True,timeout=10)
+
+            client.ping()
+            self.client = client
+            return True
+
         except Exception as e:
             print(f"❌ Cannot connect Docker Remote: {e}")
             self.client = None
+            return False
 
     async def handle_docker_action(self, container_name, action_type):
         """
@@ -74,9 +82,12 @@ class DockerBot(commands.Cog):
             
             return await interaction.response.send_message(embed=embed, ephemeral=True)
 
+        await interaction.response.defer(ephemeral=True)
+
         # 2. Docker Client Check
         if not self.client:
-            return await interaction.response.send_message("Docker Engine unreachable.", ephemeral=True)
+            if not self.connect_to_docker():
+                return await interaction.followup.send("❌ Cannot connect to Docker Engine.", ephemeral=True)
 
         # 3. Get Containers
         containers = self.client.containers.list(all=True)
@@ -101,7 +112,7 @@ class DockerBot(commands.Cog):
             mode="docker"
         )
         
-        await interaction.response.send_message("🐳 **Docker Manager**", view=view, ephemeral=True)
+        await interaction.followup.send("🐳 **Docker Manager**", view=view, ephemeral=True)
 
         view.message = await interaction.original_response()
 

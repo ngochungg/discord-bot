@@ -9,7 +9,7 @@ from wakeonlan import send_magic_packet
 class PowerManager(commands.Cog):
     def __init__(self, bot):
       self.bot = bot
-      self.lab_ip = os.getenv("LAB_IP")
+      self.lab_ip = os.getenv("BROADCAST_IP")
       self.mac = os.getenv("LAB_MAC")
       self.channel_id = int(os.getenv("NOTIFICATION_CHANNEL_ID"), 0)
       self.is_online = True
