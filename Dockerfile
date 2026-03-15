@@ -1,6 +1,9 @@
 # Python verion
 FROM python:3.12-slim
 
+# Install nmap
+RUN apt-get update && apt-get install -y nmap
+
 # Set the working directory
 WORKDIR /app
 
