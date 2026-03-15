@@ -46,7 +46,7 @@ class NmapScanner(commands.Cog):
             # 'nmap' must be installed on the host OS (apt install nmap).
             process = await asyncio.create_subprocess_exec(
 
-                'nmap', *arguments.split(), target,
+                '/usr/bin/nmap', *arguments.split(), target,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
