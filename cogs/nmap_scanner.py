@@ -44,18 +44,12 @@ class NmapScanner(commands.Cog):
             # 3. EXECUTE ASYNC SUBPROCESS
             # We use create_subprocess_exec for non-blocking execution.
             # 'nmap' must be installed on the host OS (apt install nmap).
-            # If user requires sensitive flags, add sudo to the command.
-            privileged_flags = ['-sS', '-O', '-sV', '-A']
-            if (any(flag in arguments for flag in privileged_flags)):
-                cmd = ['sudo', 'nmap', *arguments.split(), target]
-            else:
-                cmd = ['nmap', *arguments.split(), target]
-
             process = await asyncio.create_subprocess_exec(
-                *cmd,
+
+                'nmap', *arguments.split(), target,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
-            )   
+            )
 
             # Wait for the process to complete
             stdout, stderr = await process.communicate()
